@@ -1,8 +1,7 @@
-# используем язык java.
 language: java
 jdk:
-  - openjdk13
-#  - openjdk11
+  - openjdk14
+
 install: true
 dist: xenial
 os:
@@ -11,9 +10,7 @@ os:
 services:
   - postgresql
 before_install:
-  - psql -c 'create database product;' -U postgres
-  - psql -c 'create database spammer;' -U postgres
-  - psql -c 'create database sqltracker;' -U postgres
+#  - psql -c 'create database product;' -U postgres
 
 addons:
   sonarcloud:
@@ -35,7 +32,6 @@ cache:
     - '$HOME/.sonar/cache'
 
 ## после выполнени¤ сборки запустить скрипт, который будет собирать статистику по JaCoCo
-## «десь используетс¤ сторонни сервис https://codecov.io/
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - bash <(curl -Ls https://coverage.codacy.com/get.sh)
@@ -52,4 +48,4 @@ notifications:
 
 env:
   global:
-    - CODECOV_TOKEN="14d8bdaf-bfe0-4505-a092-2f9c6af61290"
+    - CODECOV_TOKEN="d2abfa25-a3fc-4e33-9bf8-38587fa0ce48"
