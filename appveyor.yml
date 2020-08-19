@@ -3,14 +3,14 @@ skip_tags: true
 clone_depth: 10
 environment:
   matrix:
-    - JAVA_HOME: C:\Program Files\Java\jdk13
+    - JAVA_HOME: C:\Program Files\Java\jdk14
 #branches:
 #  only:
 #    - master
 #  except:
 #    - gh-pages
 services:
-  - postgresql10
+  - postgresql12
 
 os: Windows Server 2012
 install:
@@ -39,9 +39,8 @@ install:
 
 build_script:
   #  - chcp 65001 && mvn clean package --batch-mode -DskipTest
-  - createdb product
-  - createdb spammer
-  - createdb sqltracker
+  #  - createdb product
+
   - mvn clean package --batch-mode -DskipTest
 test_script:
   #  - chcp 65001 && mvn clean install --batch-mode
