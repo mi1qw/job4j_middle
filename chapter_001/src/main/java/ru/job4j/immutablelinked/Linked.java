@@ -1,29 +1,25 @@
 package ru.job4j.immutablelinked;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 public class Linked {
-    @NotThreadSafe
+    @ThreadSafe
     public class Node<T> {
-        private volatile Node next;
-        private volatile T value;
+        private final Node<T> next;
+        private final T value;
+
+        public Node(final Node<T> next, final T value) {
+            this.next = next;
+            this.value = value;
+        }
 
         /**
          * Gets next.
          *
          * @return the next
          */
-        public Node getNext() {
+        public Node<T> getNext() {
             return next;
-        }
-
-        /**
-         * Sets next.
-         *
-         * @param next the next
-         */
-        public void setNext(final Node next) {
-            this.next = next;
         }
 
         /**
@@ -33,15 +29,6 @@ public class Linked {
          */
         public T getValue() {
             return value;
-        }
-
-        /**
-         * Sets value.
-         *
-         * @param value the value
-         */
-        public void setValue(final T value) {
-            this.value = value;
         }
     }
 }
