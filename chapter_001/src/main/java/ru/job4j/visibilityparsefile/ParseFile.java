@@ -13,48 +13,22 @@ public class ParseFile {
     public static final Logger LOGGER = LoggerFactory.getLogger(ParseFile.class);
     private File file;
 
-    /**
-     * Sets file.
-     *
-     * @param f the f
-     */
-    public synchronized void setFile(final File f) {
-        file = f;
-    }
-
-    /**
-     * Gets file.
-     *
-     * @return the file
-     */
-    public synchronized File getFile() {
-        return file;
+    public ParseFile(final File file) {
+        this.file = file;
     }
 
     /**
      * Gets content.
      *
      * @return the content
-     * @throws IOException the io exception
      */
-    public synchronized String getContent() {
-        return getContent(true);
-    }
-
-    /**
-     * Gets content without unicode.
-     *
-     * @return the content without unicode
-     * @throws IOException the io exception
-     */
-    public synchronized String getContentWithoutUnicode() {
-        return getContent(false);
-    }
-
-    @NotNull
-    private String getContent(final boolean unicode) {
-        StringBuilder output = new StringBuilder();
+    public synchronized String getContent(final boolean... unicod) {
+        boolean unicode = false;
         int data;
+        StringBuilder output = new StringBuilder();
+        if (unicod.length != 0 && unicod[0]) {
+            unicode = true;
+        }
         try (BufferedInputStream i = new BufferedInputStream(new FileInputStream(file))) {
             while ((data = i.read()) > 0) {
                 if (unicode || data < 0x80) {
@@ -74,8 +48,8 @@ public class ParseFile {
      * @throws IOException the io exception
      */
     public synchronized void saveContent(@NotNull final String content) {
-        try (BufferedOutputStream o = new BufferedOutputStream(new FileOutputStream(file))) {
-            o.write(content.getBytes());
+        try (BufferedWriter o = new BufferedWriter(new FileWriter(file))) {
+            o.write(content);
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);
         }
