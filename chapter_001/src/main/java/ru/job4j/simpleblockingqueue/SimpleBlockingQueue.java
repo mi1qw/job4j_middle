@@ -8,20 +8,20 @@ import java.util.Queue;
 
 @ThreadSafe
 public class SimpleBlockingQueue<T> {
-    private int bufMaxSize;
+    private final int bufMaxSize;
 
     public SimpleBlockingQueue(final int bufmaxsize) {
         this.bufMaxSize = bufmaxsize;
     }
 
     @GuardedBy("this")
-    private Queue<T> queue = new LinkedList<>();
+    private final Queue<T> queue = new LinkedList<>();
 
     /**
      * Offer.
      *
      * @param value the value
-     * @return
+     * @return boolean
      */
     public synchronized boolean offer(final T value) {
         boolean res;
