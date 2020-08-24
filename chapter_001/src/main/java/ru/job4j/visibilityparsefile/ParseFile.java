@@ -1,10 +1,12 @@
 package ru.job4j.visibilityparsefile;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * The type Parse file.
@@ -39,19 +41,5 @@ public class ParseFile {
             LOGGER.error(e.getMessage(), e);
         }
         return output.toString();
-    }
-
-    /**
-     * Save content.
-     *
-     * @param content the content
-     * @throws IOException the io exception
-     */
-    public synchronized void saveContent(@NotNull final String content) {
-        try (BufferedWriter o = new BufferedWriter(new FileWriter(file))) {
-            o.write(content);
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
     }
 }
