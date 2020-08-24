@@ -1,6 +1,5 @@
 package ru.job4j.simpleblockingqueue;
 
-import net.jcip.annotations.GuardedBy;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,7 +13,6 @@ public class SimpleBlockingQueueTest {
             + "And the\n"
             + "implementation above would not let me add any User into the SortedSet where the\n"
             + "username + password length is the same.";
-    @GuardedBy("queue")
     private final SimpleBlockingQueue<String> queue = new SimpleBlockingQueue<>(SIZE);
 
     /**

@@ -9,13 +9,12 @@ import java.util.Queue;
 @ThreadSafe
 public class SimpleBlockingQueue<T> {
     private final int bufMaxSize;
+    @GuardedBy("this")
+    private final Queue<T> queue = new LinkedList<>();
 
     public SimpleBlockingQueue(final int bufmaxsize) {
         this.bufMaxSize = bufmaxsize;
     }
-
-    @GuardedBy("this")
-    private final Queue<T> queue = new LinkedList<>();
 
     /**
      * Offer.
