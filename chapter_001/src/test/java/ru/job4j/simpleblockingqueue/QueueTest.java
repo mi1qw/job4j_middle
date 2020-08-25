@@ -23,6 +23,10 @@ public class QueueTest {
         Thread consumer = new Thread(
                 () -> {
                     while (!queue.isEmpty() || !Thread.currentThread().isInterrupted()) {
+                        System.out.println(producer.isAlive() + "  " + !Thread.currentThread().isInterrupted()
+                                + " !isInterrupted   " + !queue.isEmpty() + " !isEmpty()   "
+                                + "consumer " + queue.size());
+
                         try {
                             buffer.add(queue.poll());
                             Thread.sleep(1);
