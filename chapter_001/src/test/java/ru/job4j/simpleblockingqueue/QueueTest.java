@@ -17,15 +17,19 @@ public class QueueTest {
         Thread producer = new Thread(
                 () -> {
                     IntStream.range(0, 5).forEach(queue::offer);
-                }
+                }, "producer"
         );
         producer.start();
         Thread consumer = new Thread(
                 () -> {
-                    while (!queue.isEmpty() || !Thread.currentThread().isInterrupted()) {
-                        System.out.println(producer.isAlive() + "  " + !Thread.currentThread().isInterrupted()
-                                + " !isInterrupted   " + !queue.isEmpty() + " !isEmpty()   "
-                                + "consumer " + queue.size());
+                    System.out.println(producer.isAlive() + " producer.isAlive   "
+                            + !queue.isEmpty() + " !isEmpty() "
+                            + "queue " + queue.size());
+                    System.out.println();
+                    while (producer.isAlive() || !queue.isEmpty()) {
+                        System.out.println(producer.isAlive() + " producer.isAlive   "
+                                + !queue.isEmpty() + " !isEmpty() "
+                                + "queue " + queue.size());
 
                         try {
                             buffer.add(queue.poll());
@@ -39,7 +43,6 @@ public class QueueTest {
         );
         consumer.start();
         producer.join();
-        consumer.interrupt();
         consumer.join();
         assertThat(buffer, is(Arrays.asList(0, 1, 2, 3, 4)));
     }
