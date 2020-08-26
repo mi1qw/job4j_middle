@@ -55,4 +55,22 @@ public class SimpleBlockingQueue<T> {
         notifyAll();
         return out;
     }
+
+    /**
+     * Is empty boolean.
+     *
+     * @return the boolean
+     */
+    public synchronized boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
+    /**
+     * Size int.
+     *
+     * @return the int
+     */
+    public synchronized int size() {
+        return queue.size();
+    }
 }
