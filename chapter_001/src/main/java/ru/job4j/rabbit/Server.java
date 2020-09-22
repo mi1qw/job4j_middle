@@ -244,22 +244,22 @@ class Comp {
     }
 }
 
-//aa.#.bb
-//aa.11.22.33.bb
-
 
 class CompareMask {
-    private static int c3;
-    private static int p3;
-    private static int l1;
-    private static int l2;
-    private static String[] c1;
-    private static String[] p2;
-    private static boolean res = true;
+    private int c3;
+    private int p3;
+    private int l1;
+    private int l2;
+    private String[] c1;
+    private String[] p2;
+    private boolean res = true;
 
-    static boolean compare(final String[] c11, final String[] p22) {
-        c1 = c11;
-        p2 = p22;
+    CompareMask(final String[] c1, final String[] p2) {
+        this.c1 = c1;
+        this.p2 = p2;
+    }
+
+    boolean compare() {
         c3 = 0;
         p3 = 0;
         l1 = c1.length;
@@ -267,45 +267,69 @@ class CompareMask {
         String c;
         String p;
 
-        //for (int i = 0; i < l1; i++) {
         do {
-            c = c1[c3];
+            if (p3 == l2) {
+                res = false;
+                break;
+            }
             p = p2[p3];
+            c = c1[c3];
             if (p.equals("#")) {
-                System.out.println("#");
-                manyWord();
-                //} else if (p.equals("*")) {
-                //    System.out.println("*");
+                if (manyWord()) {
+                    break;
+                }
             } else if (c.equals(p) || p.equals("*")) {
                 c3++;
+                //if (++c3 == l1) {
+                //    res = false;
+                //    break;
+                //}
                 p3++;
+                //if (++p3 == l2) {
+                //    res = false;
+                //    break;
+                //}
             } else {
                 res = false;
                 break;
             }
         } while (res && c3 < l1);
-        //return new Comp(1, 1);
+        //System.out.println(p3 + "   " + c3);
+        if (l2 > l1) {
+            res = false;
+        }
         return res;
     }
 
-    static void manyWord() {
+    boolean incPointer(final int pointer, final int length) {
+        int po = pointer;
+        if (++po == length) {
+            return true;
+        }
+
+        return false;
+    }
+
+    boolean manyWord() {
         int c4 = c3 + 1;
         int p4 = p3 + 1;
         if (p4 == l2) {
-            //res = true;
-            return;
+            return true;
         }
 
         while (c4 < l1) {
             if (!c1[c4].equals(p2[p4])) {
                 c4++;
             } else {
-                System.out.println(p4 + "=" + p2[p4] + "   " + c4 + "=" + c1[c4]);
+                //System.out.println(p4 + "=" + p2[p4] + "   " + c4 + "=" + c1[c4]);
                 c3 = c4;
                 p3 = p4;
-                break;
+                return false;
             }
         }
+        c3 = c4 - 1;
+        p3 = p4;
+        return false;
     }
 }
 
