@@ -21,7 +21,7 @@ public class ServerTest {
         rabbit.queueDeclare("1", Rabbit.ExchangeType.TOPIC);
         rabbit.queueBind("1", "aaa");
         rabbit.queueBind("1", "bbb");
-        rabbit.basicPublish("1", "aaa.*.#");
+        rabbit.basicPublish("1", "aaa  *.#");
 
         server.start();
 

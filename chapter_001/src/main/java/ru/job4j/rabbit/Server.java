@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class Server {
     public static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
@@ -176,16 +175,11 @@ interface Exchangemethods {
 class Topic implements Exchangemethods {
     @Override
     public Exchange.InnerQueue route(final String key) {
-        String[] str = key.split("\\.");
-        String str1 = Arrays.stream(str).map(n -> n
-                .replaceAll("^[*]$", "^\\\\\\\\w+\\$")
-                .replaceAll("^[#]$", ".+"))
-                //.replaceAll("^\\w+$", "A"))
-                .collect(Collectors.joining("\\\\."));
-        //.toArray(String[]::new);
-        System.out.println(str1);
-        System.out.println(Arrays.toString(str));
-        System.out.println(str.length);
+        String[] keys = key.split(",\\s*");
+
+        System.out.println(keys);
+        System.out.println(Arrays.toString(keys));
+        System.out.println(keys.length);
         //str.length > 1 &&
 
         return null;
@@ -246,89 +240,62 @@ class Comp {
 
 
 class CompareMask {
-    private int c3;
-    private int p3;
-    private int l1;
-    private int l2;
-    private String[] c1;
-    private String[] p2;
+    private int nS;
+    private int nP;
+    private int lenStr;
+    private int lenPat;
+    private String[] str;
+    private String[] pat;
     private boolean res = true;
 
-    CompareMask(final String[] c1, final String[] p2) {
-        this.c1 = c1;
-        this.p2 = p2;
+    CompareMask(final String[] str, final String[] pat) {
+        this.str = str;
+        this.pat = pat;
     }
 
     boolean compare() {
-        c3 = 0;
-        p3 = 0;
-        l1 = c1.length;
-        l2 = p2.length;
-        String c;
+        lenStr = str.length;
+        lenPat = pat.length;
+        String s;
         String p;
-
         do {
-            if (p3 == l2) {
+            if (nP == lenPat) {
                 res = false;
                 break;
             }
-            p = p2[p3];
-            c = c1[c3];
+            p = pat[nP];
+            s = str[nS];
             if (p.equals("#")) {
                 if (manyWord()) {
                     break;
                 }
-            } else if (c.equals(p) || p.equals("*")) {
-                c3++;
-                //if (++c3 == l1) {
-                //    res = false;
-                //    break;
-                //}
-                p3++;
-                //if (++p3 == l2) {
-                //    res = false;
-                //    break;
-                //}
+            } else if (s.equals(p) || p.equals("*")) {
+                nS++;
+                nP++;
             } else {
                 res = false;
                 break;
             }
-        } while (res && c3 < l1);
-        //System.out.println(p3 + "   " + c3);
-        if (l2 > l1) {
+        } while (nS < lenStr);
+        if (lenPat > lenStr) {
             res = false;
         }
         return res;
     }
 
-    boolean incPointer(final int pointer, final int length) {
-        int po = pointer;
-        if (++po == length) {
-            return true;
-        }
-
-        return false;
-    }
-
     boolean manyWord() {
-        int c4 = c3 + 1;
-        int p4 = p3 + 1;
-        if (p4 == l2) {
+        nS++;
+        if (++nP == lenPat) {
             return true;
         }
-
-        while (c4 < l1) {
-            if (!c1[c4].equals(p2[p4])) {
-                c4++;
+        while (nS < lenStr) {
+            if (!str[nS].equals(pat[nP])) {
+                nS++;
             } else {
-                //System.out.println(p4 + "=" + p2[p4] + "   " + c4 + "=" + c1[c4]);
-                c3 = c4;
-                p3 = p4;
                 return false;
             }
         }
-        c3 = c4 - 1;
-        p3 = p4;
+        nS--;
         return false;
     }
 }

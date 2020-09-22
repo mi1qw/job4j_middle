@@ -28,15 +28,6 @@ public class CompareMaskTest {
 
     @Test
     //@Ignore
-    public void compare2() {
-        String pat = "aa.#";
-        String str = "aa.11.22.33.bb";
-        assertTrue(new CompareMask(
-                str.split("\\."), pat.split("\\.")).compare());
-    }
-
-    @Test
-    //@Ignore
     public void compare3() {
         String pat = "#.bb1";
         String str = "aa.1.2.3.bb";
@@ -111,7 +102,7 @@ public class CompareMaskTest {
     //@Ignore
     public void compare11() {
         String pat = "#.a.a";
-        String str = "0.a";
+        String str = "0";
         assertFalse(new CompareMask(
                 str.split("\\."), pat.split("\\.")).compare());
     }
