@@ -6,35 +6,49 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class Server {
     public static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+    private static final String LN = System.lineSeparator();
     private static final String BEGINREG = "^GET /\\?msg=";
     private static final String ENDNREG = " HTTP.*\\z";
-    private static final ExecutorService EXEC = Executors.newCachedThreadPool();
+    //private static final ExecutorService EXEC = Executors.newCachedThreadPool();
+    private static final ExecutorService EXEC = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors());
+    private Thread thread;
+    private Consumer postGet = null;
 
     /**
      * Start.
      */
     public void start() {
-        try (ServerSocket server = new ServerSocket(9000)) {
-            while (!EXEC.isShutdown()) {
-                final Socket connection = server.accept();
-                EXEC.execute(() -> handleRequest(connection));
-                //EXEC.shutdown();
+        thread = new Thread(() -> {
+            try (ServerSocket server = new ServerSocket(9000)) {
+                while (!EXEC.isShutdown()) {
+                    final Socket connection = server.accept();
+                    EXEC.execute(() -> handleRequest(connection));
+                    //EXEC.execute(new HandleRequest(connection));
+                }
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
             }
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
+        });
+        thread.start();
+    }
+
+    /**
+     * Gets server.
+     *
+     * @return the server
+     */
+    public Thread getThread() {
+        return thread;
     }
 
     /**
@@ -47,283 +61,66 @@ public class Server {
     private void handleRequest(final Socket conn) {
         try (BufferedReader in = new BufferedReader(
                 new InputStreamReader(conn.getInputStream()));
-             //BufferedWriter out = new BufferedWriter(
-             //        new OutputStreamWriter(conn.getOutputStream()))
-             OutputStream out =
-                     conn.getOutputStream()
+             PrintWriter writer = new PrintWriter(conn.getOutputStream());
         ) {
-            String str = in.readLine();
-            //System.out.println(in.readLine());
-            //while ((str = in.readLine()) != null) {
-            System.out.println(getMesage(str));
-            //    //System.out.println(str);
-            //}
-            //EXEC.shutdown();
-            //out.write("HTTP/1.1 qqqq 200 OK\\r\\n\\r\\n".getBytes());
-            out.write("HTTP/1.1 200 OK\r\n".getBytes());
-            out.flush();
-            //System.out.println("11111111");
-            new Exchange("queueName", Rabbit.ExchangeType.FANOUT);
+            String str;
+            StringBuilder sb = new StringBuilder();
+            boolean begin = false;
+            while (in.ready()) {
+                str = in.readLine();
+                //System.out.println(str);
+                if (begin) {
+                    sb.append(str);
+                } else if (str.isEmpty()) {
+                    begin = true;
+                }
+            }
+            if (sb.length() != 0) {
+                new ProcessMesage(sb.toString()).process();
+            }
+            //getMesage(sb.toString());
+            writer.println("HTTP/1.1 200 OK");
+            writer.println();
+            writer.println("<p>Привет всем!</p>");
+            writer.flush();
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);
         }
     }
 
+    private void setUpMessage(final String str) {
+        if (str.contains("POST")) {
+            //System.out.println("POSTPOSTPOSTPOSTPOSTPOSTPOSTPOSTPOSTPOSTPOSTPOSTPOSTPOST");
+            //postGet = this::post;
+        } else if (str.contains("GET")) {
+            //System.out.println("GETGETGETGETGETGETGETGETGETGETGETGETGETGETGETGETGETGETGET");
+        }
+    }
+
     private String getMesage(final String mesage) {
-        String str = mesage.replaceAll(BEGINREG, "");
-        return str.replaceAll(ENDNREG, "");
-    }
-}
-
-//channel.exchangeDeclare(EXCHANGE_NAME, "topic");
-// = channel.queueDeclare().getQueue();
-//        for (String bindingKey : argv) {
-//        channel.queueBind(queueName, EXCHANGE_NAME, bindingKey);
-//        }
-
-
-class Exchange implements InQueue {
-    private final String queueName;
-    private final Rabbit.ExchangeType queueType;
-    private final Map<String, InnerQueue> queue = new ConcurrentHashMap<>();
-    private final Exchangemethods type;
-
-    Exchange(final String queueName, final Rabbit.ExchangeType queueType) {
-        this.queueName = queueName;
-        this.queueType = queueType;
-        this.type = queueType.getMethods();
-    }
-
-    /**
-     * queueBind.
-     *
-     * @param bindingKey queueBind
-     */
-    @Override
-    public void queueBind(final String bindingKey) {
-        //queue.add(new InnerQueue(bindingKey));
-        //type.
-        queue.put(bindingKey, new InnerQueue(bindingKey));
-    }
-
-    /**
-     * add.
-     *
-     * @param message
-     * @return
-     */
-    @Override
-    public String add(final String message) {
-        type.route(message);
+        //String str = mesage.replaceAll(BEGINREG, "");
+        //return str.replaceAll(ENDNREG, "");
+        int bodyJSON = mesage.indexOf("{");
+        if (bodyJSON != -1) {
+            String key = mesage.substring(0, bodyJSON);
+            String body = mesage.substring(bodyJSON);
+            System.out.println(key);
+            System.out.println(body);
+        }
         return null;
     }
 
     /**
-     * get.
+     * Post.
      */
-    @Override
-    public String get() {
-        return null;
+    void post() {
+        System.out.println("post();");
     }
 
-    void topic() {
-
-    }
-
-    void queue() {
-
-    }
-
-    protected final class InnerQueue {
-        private final String bindingKey;
-        private final ConcurrentLinkedQueue<String> innerqueue1;
-
-        private InnerQueue(final String bindingKey) {
-            this.bindingKey = bindingKey;
-            this.innerqueue1 = new ConcurrentLinkedQueue<>();
-        }
-
-        private String getBindingKey() {
-            return bindingKey;
-        }
-
-        private ConcurrentLinkedQueue<String> getInnerqueue1() {
-            return innerqueue1;
-        }
+    /**
+     * Get.
+     */
+    void get() {
+        System.out.println("get");
     }
 }
-
-
-interface InQueue {
-    String add(String message);
-
-    String get();
-
-    void queueBind(String queueBind);
-}
-
-
-interface Exchangemethods {
-    Exchange.InnerQueue route(String key);
-
-    String add(String message);
-
-    String get();
-}
-
-
-class Topic implements Exchangemethods {
-    @Override
-    public Exchange.InnerQueue route(final String key) {
-        String[] keys = key.split(",\\s*");
-
-        System.out.println(keys);
-        System.out.println(Arrays.toString(keys));
-        System.out.println(keys.length);
-        //str.length > 1 &&
-
-        return null;
-    }
-
-    @Override
-    public String add(final String message) {
-        return null;
-    }
-
-    @Override
-    public String get() {
-        return null;
-    }
-}
-
-
-class Direct implements Exchangemethods {
-    @Override
-    public Exchange.InnerQueue route(final String key) {
-        return null;
-    }
-
-    @Override
-    public String add(final String message) {
-        return null;
-    }
-
-    @Override
-    public String get() {
-        return null;
-    }
-}
-
-
-class Comp {
-    private int n1;
-    private int n2;
-    private boolean res = false;
-
-    Comp(final int n1, final int n2) {
-        this.n1 = n1;
-        this.n2 = n2;
-    }
-
-    public int getN1() {
-        return n1;
-    }
-
-    public int getN2() {
-        return n2;
-    }
-
-    public boolean isRes() {
-        return res;
-    }
-}
-
-
-class CompareMask {
-    private int nS;
-    private int nP;
-    private int lenStr;
-    private int lenPat;
-    private String[] str;
-    private String[] pat;
-    private boolean res = true;
-
-    CompareMask(final String[] str, final String[] pat) {
-        this.str = str;
-        this.pat = pat;
-    }
-
-    boolean compare() {
-        lenStr = str.length;
-        lenPat = pat.length;
-        String s;
-        String p;
-        do {
-            if (nP == lenPat) {
-                res = false;
-                break;
-            }
-            p = pat[nP];
-            s = str[nS];
-            if (p.equals("#")) {
-                if (manyWord()) {
-                    break;
-                }
-            } else if (s.equals(p) || p.equals("*")) {
-                nS++;
-                nP++;
-            } else {
-                res = false;
-                break;
-            }
-        } while (nS < lenStr);
-        if (lenPat > lenStr) {
-            res = false;
-        }
-        return res;
-    }
-
-    boolean manyWord() {
-        nS++;
-        if (++nP == lenPat) {
-            return true;
-        }
-        while (nS < lenStr) {
-            if (!str[nS].equals(pat[nP])) {
-                nS++;
-            } else {
-                return false;
-            }
-        }
-        nS--;
-        return false;
-    }
-}
-
-//class Comp {
-//    private String[] c1;
-//    private String[] c2;
-//    private int n1;
-//    private int n2;
-//
-//    Comp(final String[] c1, final String[] c2) {
-//        this.c1 = c1;
-//        this.c2 = c2;
-//        this.n1 = n1;
-//        this.n2 = n2;
-//    }
-//
-//    public String[] getC1() {
-//        return c1;
-//    }
-//
-//    public String[] getC2() {
-//        return c2;
-//    }
-//}
-
-
-
-
-
-
