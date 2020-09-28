@@ -3,18 +3,23 @@ package ru.job4j.rabbit;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static org.junit.Assert.assertTrue;
+
 public class ServerTest {
+    private static final String LN = System.lineSeparator();
     //private Server server = new Server();
 
     @Test
@@ -92,15 +97,25 @@ public class ServerTest {
 
     @Test
     public void stop() throws InterruptedException {
+        Send send = new Send();
+        ExecutorService service = send.getSendService();
+        BlockingQueue<String> blockingQueue = send.getBlockingQueue();
+
         Rabbit rabbit = new Rabbit();
+
+        rabbit.queueDeclare("Queues", Rabbit.ExchangeType.QUEUES);
+        rabbit.basicPublish("Queues", null, "Queues 1");
+        rabbit.basicPublish("Queues", "1", "Queues 1");
+        rabbit.printQueue("Queues");
+
         rabbit.queueDeclare("direct", Rabbit.ExchangeType.DIRECT);
         rabbit.queueBind("direct", "summer");
         rabbit.queueBind("direct", "autumn");
         rabbit.queueBind("direct", "winter");
         rabbit.queueBind("direct", "spring");
-        int nThreads = 399;
+        //int nThreads = 399;
         //int nThreads = 3999;
-        //int nThreads = 9999;
+        int nThreads = 9999;
         AtomicInteger integ = new AtomicInteger(nThreads);
         //AtomicInteger sprin = new AtomicInteger(0);
         //int num = 0;
@@ -149,8 +164,6 @@ public class ServerTest {
                 threads.remove(th);
             }
         }
-        //System.out.println(threads.size());
-        rabbit.getServer().stop();
 
         //Thread.sleep(0);
         //String[] queue = rabbit.printQueue("direct");
@@ -158,49 +171,202 @@ public class ServerTest {
         //System.out.println(sprin.get() + " spin");
         System.out.println();
         String[] queue;
+        List<Integer> queueItems = new ArrayList<>();
         Map<String, Exchange.InnerQueue> map = rabbit.getQueues("direct");
         for (Map.Entry<String, Exchange.InnerQueue> innerQueue : map.entrySet()) {
             queue = innerQueue.getValue().peekAll();
-            System.out.println(Stream.of(queue).distinct().count() + " "
+            int items = (int) Stream.of(queue).distinct().count();
+            queueItems.add(items);
+            System.out.println(items + " "
                     //+ Stream.of(queue).count() + " "
                     + innerQueue.getKey());
         }
+        rabbit.getServer().stop();
+        assertTrue(queueItems.get(0).equals(queueItems.get(1))
+                && queueItems.get(1).equals(queueItems.get(2))
+                && queueItems.get(2).equals(queueItems.get(3))
+        );
         //for (Map.Entry<String, Exchange.InnerQueue> innerQueue : map.entrySet()) {
         //    queue = innerQueue.getValue().peekAll();
         //    System.out.println(Stream.of(queue).distinct().count() + " "
         //            //+ Stream.of(queue).count() + " "
         //            + innerQueue.getKey());
         //}
-        //rabbit.getServer().stop();
+
+    }
+
+    @Test
+    public void send() throws InterruptedException, IOException {
+        Send send = new Send();
+        ExecutorService service = send.getSendService();
+        BlockingQueue<String> blockingQueue = send.getBlockingQueue();
+
+        Rabbit rabbit = new Rabbit();
+        rabbit.queueDeclare("weather", Rabbit.ExchangeType.DIRECT);
+        rabbit.queueBind("weather", "weather.town");
+        //rabbit.printQueue("weather");
+
+        StringBuilder sb = new StringBuilder("POST / HTTP/1.1");
+        sb.append(LN).append(LN).append("{\n"
+                + " \"postGet\":\"POST\",\n"
+                + " \"queue\":\"weather\",\n"
+                + " \"routingKey\":\"weather.town\",\n"
+                + " \"text\":\"temperature +18 C\"\n"
+                + "}");
+
+        //Thread.sleep(1000);
+        Map<String, Exchange.InnerQueue> map = rabbit.getQueues("weather");
+        Exchange.InnerQueue exchange = map.get("weather.town");
+
+        System.out.println(rabbit.getThreadServer().isAlive() + " server");
+        send.send();
+        while (exchange.peekAll().length == 0) {
+            //System.out.println(sb.toString());
+            blockingQueue.put(sb.toString());
+            //blockingQueue.offer(sb.toString());
+            System.out.println(blockingQueue.size() + "  size()");
+            //System.out.println(rabbit.getThreadServer().isAlive() + " server");
+            //send.send();
+            //send(sb.toString());
+            Thread.sleep(1000);
+        }
+        rabbit.printQueue("weather");
+        sb = new StringBuilder("POST / HTTP/1.1");
+        sb.append(LN).append(LN).append("{\n"
+                + " \"postGet\":\"GET\",\n"
+                + " \"queue\":\"weather\",\n"
+                + " \"routingKey\":\"weather.town\",\n"
+                + " \"text\":\"temperature +18 C\"\n"
+                + "}");
+        while (exchange.peekAll().length > 0) {
+            send(sb.toString());
+            Thread.sleep(20);
+        }
+        Thread.sleep(2000);
+    }
+
+    /**
+     * Send string.
+     *
+     * @param message the message
+     * @return the string
+     * @throws IOException the io exception
+     */
+    String send(final String message) throws IOException {
+        String mesgsend;
+
+        Socket socket = new Socket(InetAddress.getLocalHost(), 9000);
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
+             PrintWriter writer = new PrintWriter(socket.getOutputStream())
+        ) {
+            writer.println(message);
+            writer.flush();
+            Thread.sleep(10);
+        } catch (
+                InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 
 
-class TestHarness {
-    public long timeTasks(final int nThreads, final Runnable task) throws InterruptedException {
-        final CountDownLatch startGate = new CountDownLatch(1);
-        final CountDownLatch endGate = new CountDownLatch(nThreads);
-        for (int i = 0; i < nThreads; i++) {
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        startGate.await();
-                        try {
-                            task.run();
-                        } finally {
-                            endGate.countDown();
-                        }
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            };
-            t.start();
+class Send {
+    public static final Logger LOGGER = LoggerFactory.getLogger(Send.class);
+    private static final String LN = System.lineSeparator();
+    private BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>();
+    //private BlockingQueue<String> blockingQueue = new SynchronousQueue<>();
+    private ExecutorService service = Executors.newCachedThreadPool();
+
+    public BlockingQueue<String> getBlockingQueue() {
+        return blockingQueue;
+    }
+
+    public ExecutorService getSendService() {
+        return service;
+    }
+
+    public void send() throws IOException {
+        String mesgsend;
+
+        Socket socket = new Socket(InetAddress.getLocalHost(), 9000);
+
+        //try (BufferedReader in = new BufferedReader(
+        //        new InputStreamReader(socket.getInputStream()));
+        //     PrintWriter writer = new PrintWriter(socket.getOutputStream())
+        //) {
+        String str;
+        //str = blockingQueue.poll();
+        str = "a";
+        service.execute(() -> sendSocket(str, socket));
+
+        //{
+        //    String str1;
+        //    while (!service.isTerminated()) {
+        //        //System.out.println(socket.isConnected());
+        //
+        //        //writer.println(str);
+        //        //writer.flush();
+        //        try {
+        //            while ((str1 = in.readLine()) != null) {
+        //                System.out.println(str + "  in.readLine()");
+        //            }
+        //            //if (in.ready()) {
+        //            //    System.out.println(in.readLine() + "  in.readLine()");
+        //            //}
+        //        } catch (IOException e) {
+        //            e.printStackTrace();
+        //        }
+        //        //try {
+        //        //    Thread.sleep(10);
+        //        //} catch (InterruptedException e) {
+        //        //    e.printStackTrace();
+        //        //}
+        //
+        //        //break;
+        //    }
+        //});
+        //}
+    }
+
+    void sendSocket(final String str, final Socket socket) {
+        //System.out.println(str);
+        String str1;
+        try (
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(socket.getInputStream()));
+                //PrintWriter writer = new PrintWriter(socket.getOutputStream())
+                PrintWriter writer = new PrintWriter(new BufferedWriter(
+                        new OutputStreamWriter(socket.getOutputStream()), 1000), true)
+        ) {
+            while (!service.isTerminated()) {
+
+                //str1 = in.readLine();
+                //System.out.println(str1);
+                //while ((str1 = in.readLine()) != null) {
+                //    System.out.println(str1 + " !!!!!!!!!!!!!!!!!!!!!!!! in.readLine()");
+                //}
+
+                //System.out.println("sssss");
+                //writer.println(str);
+                //String aaa = "aaa";
+                //String aaa = blockingQueue.poll();
+
+                String aaa = blockingQueue.take();
+                //System.out.println(aaa);
+                writer.println(aaa);
+                writer.flush();
+                //System.out.println(Thread.currentThread().getName());
+                //System.out.println(
+                //        socket.isConnected() + "  isConnected" + LN
+                //                + socket.isInputShutdown() + "  isInputShutdown()" + LN
+                //                + socket.isClosed() + "  isClosed()" + LN
+                //);
+            }
+        } catch (IOException | InterruptedException e) {
+            LOGGER.error(e.getMessage(), e);
         }
-        long start = System.nanoTime();
-        startGate.countDown();
-        endGate.await();
-        long end = System.nanoTime();
-        return end - start;
     }
 }
 

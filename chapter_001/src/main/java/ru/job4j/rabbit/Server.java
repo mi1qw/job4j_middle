@@ -31,7 +31,9 @@ public class Server {
         thread = new Thread(() -> {
             try (ServerSocket server = new ServerSocket(9000)) {
                 while (!EXEC.isShutdown()) {
+                    //System.out.println(EXEC.isShutdown() + " EXEC.isShutdown()");
                     final Socket connection = server.accept();
+                    //System.out.println("server.accept()");
                     EXEC.execute(() -> handleRequest(connection));
                     //EXEC.execute(new HandleRequest(connection));
                 }
@@ -59,29 +61,35 @@ public class Server {
     }
 
     private void handleRequest(final Socket conn) {
+        String str;
+        String answer = "HTTP/1.1 200 OK";
+        StringBuilder sb = new StringBuilder();
+        boolean begin = false;
         try (BufferedReader in = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()));
-             PrintWriter writer = new PrintWriter(conn.getOutputStream());
+                new InputStreamReader(conn.getInputStream(), "UTF-8"), 1000);
+             PrintWriter writer = new PrintWriter(conn.getOutputStream())
         ) {
-            String str;
-            StringBuilder sb = new StringBuilder();
-            boolean begin = false;
-            while (in.ready()) {
-                str = in.readLine();
-                //System.out.println(str);
+            //System.out.println(Thread.currentThread().getName() + " server name");
+            while ((str = in.readLine()) != null) {
+                System.out.println(str + " " + Thread.currentThread().getName());
                 if (begin) {
                     sb.append(str);
                 } else if (str.isEmpty()) {
                     begin = true;
                 }
+                if (!in.ready()) { // для выхода изцикла при запросе из браузера
+                    break;
+                }
             }
             if (sb.length() != 0) {
-                new ProcessMesage(sb.toString()).process();
+                answer = new ProcessMesage(sb.toString()).process();
+                System.out.println(answer + "     new ProcessMesage(sb.toString()).process();");
             }
             //getMesage(sb.toString());
             writer.println("HTTP/1.1 200 OK");
             writer.println();
-            writer.println("<p>Привет всем!</p>");
+            writer.println("<p>Получил</p>");
+            //writer.println(answer);
             writer.flush();
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);

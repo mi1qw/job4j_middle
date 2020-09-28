@@ -1,10 +1,15 @@
 package ru.job4j.rabbit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Rabbit {
+    public static final Logger LOGGER = LoggerFactory.getLogger(Rabbit.class);
+    private static final String LN = System.lineSeparator();
     private static final Map<String, Exchange> QUEUE = new ConcurrentHashMap<>();
     private Server server = new Server();
     private static Rabbit rabbit;
@@ -44,9 +49,14 @@ public class Rabbit {
      */
     void queueDeclare(final String queueName, final ExchangeType exchangeType) {
         Exchange exchange = new Exchange(queueName, exchangeType);
-        QUEUE.put(queueName, exchange);
+        if (QUEUE.putIfAbsent(queueName, exchange) == null) {
+            if (exchangeType == ExchangeType.QUEUES) {
+                exchange.queueBind("#");
+            }
+        } else {
+            LOGGER.warn("There is existing Queue with the same name{}", LN);
+        }
     }
-    //final String exchangeName,
 
     /**
      * Queue bind.
@@ -55,9 +65,10 @@ public class Rabbit {
      * @param bindingKey the binding key
      */
     void queueBind(final String queueName, final String bindingKey) {
-        QUEUE.get(queueName).queueBind(bindingKey);
-        //QUEUES.put()
-        //ExchangeType.DIRECT.exchangeName
+        Exchange exchange = QUEUE.get(queueName);
+        if (exchange.getQueueType() != ExchangeType.QUEUES) {
+            exchange.queueBind(bindingKey);
+        }
     }
 
     //channel.basicPublish(EXCHANGE_NAME, routingKey, null, message.getBytes("UTF-8"));
@@ -114,10 +125,9 @@ public class Rabbit {
     }
 
     public enum ExchangeType {
+        QUEUES(new Queues()),
         DIRECT(new Direct()),
-        TOPIC(new Topic()),
-        FANOUT(null),
-        HEADER(null);
+        TOPIC(new Topic());
         private final Exchangemethods methods;
 
         ExchangeType(final Exchangemethods methods) {

@@ -22,6 +22,10 @@ class Exchange implements InQueue {
         this.type = queueType.getMethods();
     }
 
+    public Rabbit.ExchangeType getQueueType() {
+        return queueType;
+    }
+
     /**
      * Instantiates a new Print queue.
      */
@@ -72,6 +76,14 @@ class Exchange implements InQueue {
                         return message;
                     }
                 });
+        //return new Direct().route(queues, routingKey, message,
+        //        (n, m) -> {
+        //            if (!n.add(m)) {
+        //                return null;
+        //            } else {
+        //                return message;
+        //            }
+        //        });
     }
 
     /**

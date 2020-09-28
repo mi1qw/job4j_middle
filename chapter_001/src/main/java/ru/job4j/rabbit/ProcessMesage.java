@@ -19,39 +19,44 @@ public class ProcessMesage {
     /**
      * Process.
      */
-    void process() throws IOException {
+    String process() throws IOException {
+
+        String res = null;
         //System.out.println(body + "System.out.println(body+");
         StringReader reader = new StringReader(body);
         weather = mapper.readValue(reader, Weather.class);
         //System.out.println(weather);
         String postGet = weather.getPostGet();
         if (postGet.equals("POST")) {
-            post();
+            res = post();
         } else if (postGet.equals("GET")) {
-            get();
+            res = get();
         }
+        return res;
     }
 
     /**
      * Post.
      */
-    private void post() {
+    private String post() {
         //System.out.println("post();");
         rabbit.basicPublish(
                 weather.getQueue(),
                 weather.getRoutingKey(),
                 weather.getText());
-
+        return "HTTP/1.1 200 OK";
         //System.out.println(rabbit.basicConsume("weather", "weather.town") + "  weather.town");
     }
 
     /**
      * Get.
      */
-    private void get() throws IOException {
-        String str = rabbit.basicConsume(weather.getQueue(), weather.getRoutingKey());
-        System.out.println(str + "    System.out.println(\"get\")");
-
+    private String get() throws IOException {
+        String str = rabbit.basicConsume(
+                weather.getQueue(),
+                weather.getRoutingKey());
+        //System.out.println(str + "    System.out.println(\"get\")");
+        return str;
         //Weather messageJson = new Weather(
         //        "POST",
         //        "weather",
