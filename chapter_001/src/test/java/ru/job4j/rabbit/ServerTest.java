@@ -243,22 +243,28 @@ public class ServerTest {
 
         send.send();
         Iterator<String> it = list.iterator();
-        while (exchange.peekAll().length < 1) {
+        while (exchange.peekAll().length == 0) {
             //System.out.println(header.concat(it.next()));
             //System.out.println(sb.toString());
-            if (it.hasNext()) {
-                //System.out.println(header.concat(it.next()));
-                blockingQueue.put(header.concat(it.next()));
-            } else {
-                it = list.iterator();
-            }
+            //if (it.hasNext()) {
+            //    //System.out.println(header.concat(it.next()));
+            //    blockingQueue.put(header.concat(it.next()));
+            //} else {
+            //    it = list.iterator();
+            //}
             //blockingQueue.put(sb.toString());
 
             //blockingQueue.offer(sb.toString());
             System.out.println(blockingQueue.size() + "  size()");
             //System.out.println(rabbit.getThreadServer().isAlive() + " server");
             //send.send();
-            //send(sb.toString());
+            send(sb.toString());
+            //if (it.hasNext()) {
+            //    //System.out.println(header.concat(it.next()));
+            //    blockingQueue.put(header.concat(it.next()));
+            //} else {
+            //    it = list.iterator();
+            //}
             Thread.sleep(1000);
         }
         rabbit.printQueue("weather");
