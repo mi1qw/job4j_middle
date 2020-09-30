@@ -207,6 +207,9 @@ public class ServerTest {
         //rabbit.printQueue("weather");
 
         StringBuilder sb = new StringBuilder("POST / HTTP/1.1");
+        sb.append("Host: localhost:9000\n"
+                + "Connection: keep-alive\n"
+                + "Content-Type: text/plain;charset=UTF-8");
         sb.append(LN).append(LN).append("{\n"
                 + " \"postGet\":\"POST\",\n"
                 + " \"queue\":\"weather\",\n"
@@ -218,20 +221,22 @@ public class ServerTest {
         Map<String, Exchange.InnerQueue> map = rabbit.getQueues("weather");
         Exchange.InnerQueue exchange = map.get("weather.town");
 
-        System.out.println(rabbit.getThreadServer().isAlive() + " server");
-        send.send();
+        //send.send();
         while (exchange.peekAll().length == 0) {
             //System.out.println(sb.toString());
-            blockingQueue.put(sb.toString());
-            //blockingQueue.offer(sb.toString());
-            System.out.println(blockingQueue.size() + "  size()");
-            //System.out.println(rabbit.getThreadServer().isAlive() + " server");
-            //send.send();
-            //send(sb.toString());
+            //blockingQueue.put(sb.toString());
+            //blockingQueue.offer(sb.toString())
+            send.send(sb.toString());
+            //System.out.println(exchange.peekAll().length + "   exchange.peekAll().length");
+            //System.out.println(blockingQueue.size() + "  size()");
             Thread.sleep(1000);
         }
-        rabbit.printQueue("weather");
+        System.out.println(exchange.peekAll().length + "   exchange.peekAll().length");
+        //rabbit.printQueue("weather");
         sb = new StringBuilder("POST / HTTP/1.1");
+        sb.append("Host: localhost:9000\n"
+                + "Connection: keep-alive\n"
+                + "Content-Type: text/plain;charset=UTF-8");
         sb.append(LN).append(LN).append("{\n"
                 + " \"postGet\":\"GET\",\n"
                 + " \"queue\":\"weather\",\n"
@@ -239,8 +244,8 @@ public class ServerTest {
                 + " \"text\":\"temperature +18 C\"\n"
                 + "}");
         while (exchange.peekAll().length > 0) {
-            send(sb.toString());
-            Thread.sleep(20);
+            send.send(sb.toString());
+            Thread.sleep(300);
         }
         Thread.sleep(2000);
     }
@@ -287,47 +292,48 @@ class Send {
         return service;
     }
 
-    public void send() throws IOException {
+    public void send(final String message) throws IOException {
         String mesgsend;
 
         Socket socket = new Socket(InetAddress.getLocalHost(), 9000);
 
-        //try (BufferedReader in = new BufferedReader(
-        //        new InputStreamReader(socket.getInputStream()));
-        //     PrintWriter writer = new PrintWriter(socket.getOutputStream())
-        //) {
-        String str;
-        //str = blockingQueue.poll();
-        str = "a";
-        service.execute(() -> sendSocket(str, socket));
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
+             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true)
+        ) {
+            String str;
+            //str = blockingQueue.poll();
+            str = "a";
+            //service.execute(() -> sendSocket(str, socket));
 
-        //{
-        //    String str1;
-        //    while (!service.isTerminated()) {
-        //        //System.out.println(socket.isConnected());
-        //
-        //        //writer.println(str);
-        //        //writer.flush();
-        //        try {
-        //            while ((str1 = in.readLine()) != null) {
-        //                System.out.println(str + "  in.readLine()");
-        //            }
-        //            //if (in.ready()) {
-        //            //    System.out.println(in.readLine() + "  in.readLine()");
-        //            //}
-        //        } catch (IOException e) {
-        //            e.printStackTrace();
-        //        }
-        //        //try {
-        //        //    Thread.sleep(10);
-        //        //} catch (InterruptedException e) {
-        //        //    e.printStackTrace();
-        //        //}
-        //
-        //        //break;
-        //    }
-        //});
-        //}
+            //{
+            String str1;
+            //while (!service.isTerminated()) {
+            //System.out.println(socket.isConnected());
+
+            writer.println(message);
+            //writer.flush();
+
+            while ((str1 = in.readLine()) != null) {
+                System.out.println(str1 + "  получил");
+            }
+
+            //if (in.ready()) {
+            //    System.out.println(in.readLine() + "  in.readLine()");
+            //}
+
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //break;
+            //}
+            //});
+        } catch (IOException e) {
+            LOGGER.warn(e.getMessage(), e);
+        }
     }
 
     void sendSocket(final String str, final Socket socket) {
@@ -356,7 +362,7 @@ class Send {
                 String aaa = blockingQueue.take();
                 //System.out.println(aaa);
                 writer.println(aaa);
-                writer.flush();
+                //writer.flush();
                 //System.out.println(Thread.currentThread().getName());
                 //System.out.println(
                 //        socket.isConnected() + "  isConnected" + LN
