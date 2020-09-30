@@ -9,9 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -205,8 +203,33 @@ public class ServerTest {
         rabbit.queueDeclare("weather", Rabbit.ExchangeType.DIRECT);
         rabbit.queueBind("weather", "weather.town");
         //rabbit.printQueue("weather");
-
+        String header = "POST / HTTP/1.1\n"
+                + "Host: localhost:9000\n"
+                + "Connection: keep-alive\n"
+                + "Content-Type: text/plain;charset=UTF-8" + LN + LN;
+        List<String> list = List.of("{\n"
+                        + " \"postGet\":\"POST\",\n"
+                        + " \"queue\":\"weather\",\n"
+                        + " \"routingKey\":\"weather.town\",\n"
+                        + " \"text\":\"temperature +18 C\"\n"
+                        + "}",
+                "{\n"
+                        + " \"postGet\":\"POST\",\n"
+                        + " \"queue\":\"weather\",\n"
+                        + " \"routingKey\":\"weather.town\",\n"
+                        + " \"text\":\"temperature +19 C\"\n"
+                        + "}",
+                "{\n"
+                        + " \"postGet\":\"POST\",\n"
+                        + " \"queue\":\"weather\",\n"
+                        + " \"routingKey\":\"weather.town\",\n"
+                        + " \"text\":\"temperature +20 C\"\n"
+                        + "}"
+        );
         StringBuilder sb = new StringBuilder("POST / HTTP/1.1");
+        sb.append("Host: localhost:9000\n"
+                + "Connection: keep-alive\n"
+                + "Content-Type: text/plain;charset=UTF-8");
         sb.append(LN).append(LN).append("{\n"
                 + " \"postGet\":\"POST\",\n"
                 + " \"queue\":\"weather\",\n"
@@ -218,11 +241,19 @@ public class ServerTest {
         Map<String, Exchange.InnerQueue> map = rabbit.getQueues("weather");
         Exchange.InnerQueue exchange = map.get("weather.town");
 
-        System.out.println(rabbit.getThreadServer().isAlive() + " server");
         send.send();
-        while (exchange.peekAll().length == 0) {
+        Iterator<String> it = list.iterator();
+        while (exchange.peekAll().length < 1) {
+            //System.out.println(header.concat(it.next()));
             //System.out.println(sb.toString());
-            blockingQueue.put(sb.toString());
+            if (it.hasNext()) {
+                //System.out.println(header.concat(it.next()));
+                blockingQueue.put(header.concat(it.next()));
+            } else {
+                it = list.iterator();
+            }
+            //blockingQueue.put(sb.toString());
+
             //blockingQueue.offer(sb.toString());
             System.out.println(blockingQueue.size() + "  size()");
             //System.out.println(rabbit.getThreadServer().isAlive() + " server");
@@ -232,17 +263,37 @@ public class ServerTest {
         }
         rabbit.printQueue("weather");
         sb = new StringBuilder("POST / HTTP/1.1");
+        sb.append("Host: localhost:9000\n"
+                + "Connection: keep-alive\n"
+                + "Content-Type: text/plain;charset=UTF-8");
         sb.append(LN).append(LN).append("{\n"
                 + " \"postGet\":\"GET\",\n"
                 + " \"queue\":\"weather\",\n"
                 + " \"routingKey\":\"weather.town\",\n"
                 + " \"text\":\"temperature +18 C\"\n"
                 + "}");
+
+        //send = new Send();
+        //service = send.getSendService();
+        //blockingQueue = send.getBlockingQueue();
+        send.send();
+
         while (exchange.peekAll().length > 0) {
-            send(sb.toString());
-            Thread.sleep(20);
+            //send(sb.toString());
+            System.out.println(blockingQueue.size() + "  size()");
+            blockingQueue.put(sb.toString());
+            Thread.sleep(200);
         }
-        Thread.sleep(2000);
+        System.out.println("End");
+
+        //System.out.println(blockingQueue.size());
+        //blockingQueue.forEach(System.out::println);
+        send.getResult().forEach(System.out::println);
+        System.out.println();
+        Deque<String> result = send.getResult();
+        System.out.println(result.getLast());
+
+        //Thread.sleep(2000);
     }
 
     /**
@@ -276,11 +327,16 @@ class Send {
     public static final Logger LOGGER = LoggerFactory.getLogger(Send.class);
     private static final String LN = System.lineSeparator();
     private BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>();
+    private Deque<String> result = new ConcurrentLinkedDeque<>();
     //private BlockingQueue<String> blockingQueue = new SynchronousQueue<>();
     private ExecutorService service = Executors.newCachedThreadPool();
 
     public BlockingQueue<String> getBlockingQueue() {
         return blockingQueue;
+    }
+
+    public Deque<String> getResult() {
+        return result;
     }
 
     public ExecutorService getSendService() {
@@ -344,9 +400,6 @@ class Send {
 
                 //str1 = in.readLine();
                 //System.out.println(str1);
-                //while ((str1 = in.readLine()) != null) {
-                //    System.out.println(str1 + " !!!!!!!!!!!!!!!!!!!!!!!! in.readLine()");
-                //}
 
                 //System.out.println("sssss");
                 //writer.println(str);
@@ -356,7 +409,12 @@ class Send {
                 String aaa = blockingQueue.take();
                 //System.out.println(aaa);
                 writer.println(aaa);
-                writer.flush();
+                //writer.flush();
+                while ((str1 = in.readLine()) != null) {
+                    //blockingQueue.put(str1);
+                    result.add(str1);
+                    //System.out.println(str1 + " !!!!!!!!!!!!!!!!!!!!!!!! in.readLine()");
+                }
                 //System.out.println(Thread.currentThread().getName());
                 //System.out.println(
                 //        socket.isConnected() + "  isConnected" + LN

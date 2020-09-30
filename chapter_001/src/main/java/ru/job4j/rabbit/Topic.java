@@ -8,6 +8,7 @@ import java.util.Map;
 class Topic implements Exchangemethods {
     public static final Logger LOGGER = LoggerFactory.getLogger(Topic.class);
     private static final String LN = System.lineSeparator();
+    private String wasntAded = "The message wasn't added";
 
     @Override
     public String route(final Map<String, Exchange.InnerQueue> queues,
@@ -17,7 +18,8 @@ class Topic implements Exchangemethods {
         Route rt = new Route();
         out = rt.route(queues, routingKey, message, function);
         if (out == null) {
-            LOGGER.warn("The message wasn't aded{}", LN);
+            out = wasntAded;
+            LOGGER.warn("{}{}", wasntAded, LN);
         }
         return out;
     }

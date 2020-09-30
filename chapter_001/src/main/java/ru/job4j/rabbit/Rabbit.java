@@ -13,6 +13,7 @@ public class Rabbit {
     private static final Map<String, Exchange> QUEUE = new ConcurrentHashMap<>();
     private Server server = new Server();
     private static Rabbit rabbit;
+    private String wrongNamQue = "Wrong name of Queue";
 
     public Rabbit() {
         server.start();
@@ -84,10 +85,28 @@ public class Rabbit {
      * @param queueName the queue name
      * @param message   the message
      */
-    void basicPublish(final String queueName, final String routingKey, final String message) {
+    String basicPublish(final String queueName, final String routingKey, final String message) {
         //basicPublish.getAndIncrement();
         Exchange exchange = QUEUE.get(queueName);
-        exchange.add(routingKey, message);
+        if (exchange == null) {
+            LOGGER.warn("{}{}", wrongNamQue, LN);
+            return wrongNamQue;
+        } else {
+            return exchange.add(routingKey, message);
+        }
+    }
+
+    /**
+     * Basic consume string.
+     *
+     * @param queueName  the queue name
+     * @param routingKey the routing key
+     * @return the string
+     */
+    //channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
+    String basicConsume(final String queueName, final String routingKey) {
+        Exchange exchange = QUEUE.get(queueName);
+        return exchange.get(routingKey);
     }
 
     /**
@@ -109,19 +128,6 @@ public class Rabbit {
     Map<String, Exchange.InnerQueue> getQueues(final String queueName) {
         Exchange exchange = QUEUE.get(queueName);
         return exchange.getQueues();
-    }
-
-    /**
-     * Basic consume string.
-     *
-     * @param queueName  the queue name
-     * @param routingKey the routing key
-     * @return the string
-     */
-    //channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
-    String basicConsume(final String queueName, final String routingKey) {
-        Exchange exchange = QUEUE.get(queueName);
-        return exchange.get(routingKey);
     }
 
     public enum ExchangeType {

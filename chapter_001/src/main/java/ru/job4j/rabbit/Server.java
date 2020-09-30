@@ -71,7 +71,7 @@ public class Server {
         ) {
             //System.out.println(Thread.currentThread().getName() + " server name");
             while ((str = in.readLine()) != null) {
-                System.out.println(str + " " + Thread.currentThread().getName());
+                //System.out.println(str);
                 if (begin) {
                     sb.append(str);
                 } else if (str.isEmpty()) {
@@ -86,9 +86,9 @@ public class Server {
                 System.out.println(answer + "     new ProcessMesage(sb.toString()).process();");
             }
             //getMesage(sb.toString());
-            writer.println("HTTP/1.1 200 OK");
-            writer.println();
-            writer.println("<p>Получил</p>");
+            //writer.println("HTTP/1.1 200 OK");
+            writer.println(answer);
+            //writer.println("<p>Получил</p>");
             //writer.println(answer);
             writer.flush();
         } catch (IOException e) {

@@ -40,11 +40,11 @@ public class ProcessMesage {
      */
     private String post() {
         //System.out.println("post();");
-        rabbit.basicPublish(
+        return rabbit.basicPublish(
                 weather.getQueue(),
                 weather.getRoutingKey(),
                 weather.getText());
-        return "HTTP/1.1 200 OK";
+        //return "HTTP/1.1 200 OK";
         //System.out.println(rabbit.basicConsume("weather", "weather.town") + "  weather.town");
     }
 

@@ -8,6 +8,8 @@ import java.util.Map;
 class Direct implements Exchangemethods {
     public static final Logger LOGGER = LoggerFactory.getLogger(Direct.class);
     private static final String LN = System.lineSeparator();
+    private String wasntAded = "The message wasn't added";
+    private String wrongRoutKey = "Wrong routingKey, must be without '*' or '#'";
 
     @Override
     public String route(final Map<String, Exchange.InnerQueue> queues, final String routingKey,
@@ -17,10 +19,12 @@ class Direct implements Exchangemethods {
             Route rt = new Route();
             out = rt.route(queues, routingKey, message, function);
             if (out == null) {
-                LOGGER.warn("The message wasn't aded{}", LN);
+                out = wasntAded;
+                LOGGER.warn("{}{}", wasntAded, LN);
             }
         } else {
-            LOGGER.warn("Wrong routingKey, must be without '*' or '#'{}", LN);
+            out = wrongRoutKey;
+            LOGGER.warn("{}{}", wrongRoutKey, LN);
         }
         return out;
     }
