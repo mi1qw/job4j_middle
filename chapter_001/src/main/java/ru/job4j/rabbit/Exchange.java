@@ -1,5 +1,8 @@
 package ru.job4j.rabbit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +18,9 @@ class Exchange implements InQueue {
     private final Rabbit.ExchangeType queueType;
     private final Map<String, InnerQueue> queues = new ConcurrentHashMap<>();
     private final Exchangemethods type;
+    public static final Logger LOGGER = LoggerFactory.getLogger(Exchange.class);
+    private static final String LN = System.lineSeparator();
+    private String wrongRoutKey = "Wrong routingKey, must be without '*' or '#'";
 
     Exchange(final String queueName, final Rabbit.ExchangeType queueType) {
         this.queueName = queueName;
@@ -55,9 +61,11 @@ class Exchange implements InQueue {
      */
     @Override
     public void queueBind(final String bindingKey) {
-        //queue.add(new InnerQueue(bindingKey));
-        //type.
-        queues.put(bindingKey, new InnerQueue(bindingKey));
+        if (queueType == Rabbit.ExchangeType.DIRECT && bindingKey.matches(".*[*|#].*")) {
+            LOGGER.warn("{}{}", wrongRoutKey, LN);
+        } else {
+            queues.put(bindingKey, new InnerQueue(bindingKey));
+        }
     }
 
     /**

@@ -83,7 +83,7 @@ public class Server {
             }
             if (sb.length() != 0) {
                 answer = new ProcessMesage(sb.toString()).process();
-                System.out.println(answer + "     new ProcessMesage(sb.toString()).process();");
+                //System.out.println(answer + "     new ProcessMesage(sb.toString()).process();");
             }
             //getMesage(sb.toString());
             //writer.println("HTTP/1.1 200 OK");

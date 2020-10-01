@@ -67,7 +67,9 @@ public class Rabbit {
      */
     void queueBind(final String queueName, final String bindingKey) {
         Exchange exchange = QUEUE.get(queueName);
-        if (exchange.getQueueType() != ExchangeType.QUEUES) {
+        if (exchange == null) {
+            LOGGER.warn("There is no queue with such names{}", LN);
+        } else if (exchange.getQueueType() != ExchangeType.QUEUES) {
             exchange.queueBind(bindingKey);
         }
     }

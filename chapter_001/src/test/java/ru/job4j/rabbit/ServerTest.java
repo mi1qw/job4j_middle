@@ -1,24 +1,96 @@
 package ru.job4j.rabbit;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ServerTest {
     private static final String LN = System.lineSeparator();
-    //private Server server = new Server();
+    private Deque<String> result = new LinkedList<>();
+    public static final Logger LOGGER = LoggerFactory.getLogger(ServerTest.class);
+    private Rabbit rabbit;
+    private List<String> list = List.of("element 1", "element 2");
+
+    @Before
+    public void setUp() {
+        rabbit = new Rabbit();
+    }
+
+    @Test
+    public void queue() {
+        rabbit.queueDeclare("Queues", Rabbit.ExchangeType.QUEUES);
+        rabbit.basicPublish("Queues", null, "element 1");
+        rabbit.basicPublish("Queues", "1", "element 2");
+        rabbit.printQueue("Queues");
+        String el1 = rabbit.basicConsume("Queues", null);
+        String el2 = rabbit.basicConsume("Queues", null);
+        String error = rabbit.basicConsume("Queues", null);
+        assertEquals("The message wasn't added", error);
+        assertThat(list, containsInAnyOrder(el1, el2));
+    }
+
+    @Test
+    public void direct() {
+        rabbit.queueDeclare("direct", Rabbit.ExchangeType.DIRECT);
+        rabbit.queueBind("direct", "winter");
+        rabbit.queueBind("direct", "summer");
+        rabbit.queueBind("direct1", "?");
+        rabbit.queueBind("direct", "summer.*");
+
+        rabbit.basicPublish("direct", "winter", "element 1");
+        rabbit.basicPublish("direct", "winter", "element 2");
+        rabbit.basicPublish("direct", "summer", "summer 1");
+        String error = rabbit.basicPublish("direct", "summer1", "?");
+        assertEquals("The message wasn't added", error);
+        rabbit.printQueue("direct");
+
+        String el1 = rabbit.basicConsume("direct", "winter");
+        String el2 = rabbit.basicConsume("direct", "winter");
+        String el3 = rabbit.basicConsume("direct", "summer");
+        String el4 = rabbit.basicConsume("direct", "summer.*");
+        String el5 = rabbit.basicConsume("direct", "summer1");
+        String el6 = rabbit.basicConsume("direct", "summer");
+        assertThat(list, containsInAnyOrder(el1, el2));
+        assertEquals("summer 1", el3);
+        assertEquals("Wrong routingKey, must be without '*' or '#'", el4);
+        assertEquals("The message wasn't added", el5);
+        assertEquals("The message wasn't added", el6);
+    }
+
+    @Test
+    public void topic() {
+        rabbit.queueDeclare("weather", Rabbit.ExchangeType.TOPIC);
+        rabbit.queueBind("weather", "weather.*");
+        rabbit.queueBind("weather", "weather.city.*");
+        rabbit.queueBind("weather", "population.city.*");
+        rabbit.queueBind("weather", "#.Mytown");
+
+        //rabbit.basicPublish("weather", "weather.vilage", "10 C");
+        //rabbit.basicPublish("weather", "weather.city", "15 C");
+
+        rabbit.basicPublish("weather", "weather.city.Mytown", "15 C");
+        rabbit.basicPublish("weather", "population.city.Mytown",
+                "population 20 00 people");
+
+        rabbit.printQueue("weather");
+    }
 
     @Test
     public void start() throws IOException, InterruptedException {
@@ -69,51 +141,21 @@ public class ServerTest {
         //Thread.sleep(5000);
         //rabbit.getServer().stop();
         rabbit.getThreadServer().join();
-
-        //создание объекта для сериализации в JSON
-        //Cat cat = new Cat();
-        Cat cat = new Cat("Murka", 5, 4);
-        //cat.name = "Murka";
-        //cat.age = 5;
-        //cat.weight = 4;
-
-        //писать результат сериализации будем во Writer(StringWriter)
-        StringWriter writer = new StringWriter();
-        //это объект Jackson, который выполняет сериализацию
-        ObjectMapper mapper = new ObjectMapper();
-        // сама сериализация: 1-куда, 2-что
-        mapper.writeValue(writer, cat);
-        //преобразовываем все записанное во StringWriter в строку
-        String result = writer.toString();
-        System.out.println(result);
-        String jsonString = "{ \"name\":\"Murka\", \"age\":5, \"weight\":4}";
-        StringReader reader = new StringReader(jsonString);
-
-        Cat cat1 = mapper.readValue(reader, Cat.class);
-        System.out.println(cat1);
     }
 
     @Test
     public void stop() throws InterruptedException {
-        Send send = new Send();
-        ExecutorService service = send.getSendService();
-        BlockingQueue<String> blockingQueue = send.getBlockingQueue();
 
         Rabbit rabbit = new Rabbit();
-
-        rabbit.queueDeclare("Queues", Rabbit.ExchangeType.QUEUES);
-        rabbit.basicPublish("Queues", null, "Queues 1");
-        rabbit.basicPublish("Queues", "1", "Queues 1");
-        rabbit.printQueue("Queues");
 
         rabbit.queueDeclare("direct", Rabbit.ExchangeType.DIRECT);
         rabbit.queueBind("direct", "summer");
         rabbit.queueBind("direct", "autumn");
         rabbit.queueBind("direct", "winter");
         rabbit.queueBind("direct", "spring");
-        //int nThreads = 399;
-        //int nThreads = 3999;
-        int nThreads = 9999;
+
+        int nThreads = 3999;
+
         AtomicInteger integ = new AtomicInteger(nThreads);
         //AtomicInteger sprin = new AtomicInteger(0);
         //int num = 0;
@@ -149,11 +191,6 @@ public class ServerTest {
             cnt.countDown();
             //num++;
         }
-        //rabbit.printQueue("direct");
-        //System.out.println(num + "  for (int i = nThreads; i > -1; i--)");
-        //rabbit.getThreadServer().join();
-        //Thread.sleep(5000);
-        //rabbit.getServer().stop();
 
         System.out.println(threads.size());
         while (threads.size() != 0) {
@@ -163,11 +200,6 @@ public class ServerTest {
             }
         }
 
-        //Thread.sleep(0);
-        //String[] queue = rabbit.printQueue("direct");
-        //System.out.println(rabbit.getBasicPublish().get() + "   getBasicPublish");
-        //System.out.println(sprin.get() + " spin");
-        System.out.println();
         String[] queue;
         List<Integer> queueItems = new ArrayList<>();
         Map<String, Exchange.InnerQueue> map = rabbit.getQueues("direct");
@@ -175,57 +207,22 @@ public class ServerTest {
             queue = innerQueue.getValue().peekAll();
             int items = (int) Stream.of(queue).distinct().count();
             queueItems.add(items);
-            System.out.println(items + " "
-                    //+ Stream.of(queue).count() + " "
-                    + innerQueue.getKey());
+            System.out.println(items + " " + innerQueue.getKey());
         }
         rabbit.getServer().stop();
         assertTrue(queueItems.get(0).equals(queueItems.get(1))
                 && queueItems.get(1).equals(queueItems.get(2))
                 && queueItems.get(2).equals(queueItems.get(3))
         );
-        //for (Map.Entry<String, Exchange.InnerQueue> innerQueue : map.entrySet()) {
-        //    queue = innerQueue.getValue().peekAll();
-        //    System.out.println(Stream.of(queue).distinct().count() + " "
-        //            //+ Stream.of(queue).count() + " "
-        //            + innerQueue.getKey());
-        //}
-
     }
 
     @Test
     public void send() throws InterruptedException, IOException {
-        Send send = new Send();
-        ExecutorService service = send.getSendService();
-        BlockingQueue<String> blockingQueue = send.getBlockingQueue();
-
         Rabbit rabbit = new Rabbit();
         rabbit.queueDeclare("weather", Rabbit.ExchangeType.DIRECT);
         rabbit.queueBind("weather", "weather.town");
-        //rabbit.printQueue("weather");
-        String header = "POST / HTTP/1.1\n"
-                + "Host: localhost:9000\n"
-                + "Connection: keep-alive\n"
-                + "Content-Type: text/plain;charset=UTF-8" + LN + LN;
-        List<String> list = List.of("{\n"
-                        + " \"postGet\":\"POST\",\n"
-                        + " \"queue\":\"weather\",\n"
-                        + " \"routingKey\":\"weather.town\",\n"
-                        + " \"text\":\"temperature +18 C\"\n"
-                        + "}",
-                "{\n"
-                        + " \"postGet\":\"POST\",\n"
-                        + " \"queue\":\"weather\",\n"
-                        + " \"routingKey\":\"weather.town\",\n"
-                        + " \"text\":\"temperature +19 C\"\n"
-                        + "}",
-                "{\n"
-                        + " \"postGet\":\"POST\",\n"
-                        + " \"queue\":\"weather\",\n"
-                        + " \"routingKey\":\"weather.town\",\n"
-                        + " \"text\":\"temperature +20 C\"\n"
-                        + "}"
-        );
+        Map<String, Exchange.InnerQueue> map = rabbit.getQueues("weather");
+        Exchange.InnerQueue exchange = map.get("weather.town");
         StringBuilder sb = new StringBuilder("POST / HTTP/1.1");
         sb.append("Host: localhost:9000\n"
                 + "Connection: keep-alive\n"
@@ -236,35 +233,8 @@ public class ServerTest {
                 + " \"routingKey\":\"weather.town\",\n"
                 + " \"text\":\"temperature +18 C\"\n"
                 + "}");
-
-        //Thread.sleep(1000);
-        Map<String, Exchange.InnerQueue> map = rabbit.getQueues("weather");
-        Exchange.InnerQueue exchange = map.get("weather.town");
-
-        send.send();
-        Iterator<String> it = list.iterator();
         while (exchange.peekAll().length == 0) {
-            //System.out.println(header.concat(it.next()));
-            //System.out.println(sb.toString());
-            //if (it.hasNext()) {
-            //    //System.out.println(header.concat(it.next()));
-            //    blockingQueue.put(header.concat(it.next()));
-            //} else {
-            //    it = list.iterator();
-            //}
-            //blockingQueue.put(sb.toString());
-
-            //blockingQueue.offer(sb.toString());
-            System.out.println(blockingQueue.size() + "  size()");
-            //System.out.println(rabbit.getThreadServer().isAlive() + " server");
-            //send.send();
             send(sb.toString());
-            //if (it.hasNext()) {
-            //    //System.out.println(header.concat(it.next()));
-            //    blockingQueue.put(header.concat(it.next()));
-            //} else {
-            //    it = list.iterator();
-            //}
             Thread.sleep(1000);
         }
         rabbit.printQueue("weather");
@@ -279,27 +249,12 @@ public class ServerTest {
                 + " \"text\":\"temperature +18 C\"\n"
                 + "}");
 
-        //send = new Send();
-        //service = send.getSendService();
-        //blockingQueue = send.getBlockingQueue();
-        send.send();
-
         while (exchange.peekAll().length > 0) {
-            //send(sb.toString());
-            System.out.println(blockingQueue.size() + "  size()");
-            blockingQueue.put(sb.toString());
+            send(sb.toString());
             Thread.sleep(200);
         }
-        System.out.println("End");
-
-        //System.out.println(blockingQueue.size());
-        //blockingQueue.forEach(System.out::println);
-        send.getResult().forEach(System.out::println);
-        System.out.println();
-        Deque<String> result = send.getResult();
         System.out.println(result.getLast());
-
-        //Thread.sleep(2000);
+        assertEquals("temperature +18 C", result.getLast());
     }
 
     /**
@@ -309,9 +264,9 @@ public class ServerTest {
      * @return the string
      * @throws IOException the io exception
      */
-    String send(final String message) throws IOException {
-        String mesgsend;
-
+    void send(final String message) throws IOException {
+        result.clear();
+        String str = null;
         Socket socket = new Socket(InetAddress.getLocalHost(), 9000);
         try (BufferedReader in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
@@ -319,154 +274,12 @@ public class ServerTest {
         ) {
             writer.println(message);
             writer.flush();
-            Thread.sleep(10);
-        } catch (
-                InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-}
-
-
-class Send {
-    public static final Logger LOGGER = LoggerFactory.getLogger(Send.class);
-    private static final String LN = System.lineSeparator();
-    private BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>();
-    private Deque<String> result = new ConcurrentLinkedDeque<>();
-    //private BlockingQueue<String> blockingQueue = new SynchronousQueue<>();
-    private ExecutorService service = Executors.newCachedThreadPool();
-
-    public BlockingQueue<String> getBlockingQueue() {
-        return blockingQueue;
-    }
-
-    public Deque<String> getResult() {
-        return result;
-    }
-
-    public ExecutorService getSendService() {
-        return service;
-    }
-
-    public void send() throws IOException {
-        String mesgsend;
-
-        Socket socket = new Socket(InetAddress.getLocalHost(), 9000);
-
-        //try (BufferedReader in = new BufferedReader(
-        //        new InputStreamReader(socket.getInputStream()));
-        //     PrintWriter writer = new PrintWriter(socket.getOutputStream())
-        //) {
-        String str;
-        //str = blockingQueue.poll();
-        str = "a";
-        service.execute(() -> sendSocket(str, socket));
-
-        //{
-        //    String str1;
-        //    while (!service.isTerminated()) {
-        //        //System.out.println(socket.isConnected());
-        //
-        //        //writer.println(str);
-        //        //writer.flush();
-        //        try {
-        //            while ((str1 = in.readLine()) != null) {
-        //                System.out.println(str + "  in.readLine()");
-        //            }
-        //            //if (in.ready()) {
-        //            //    System.out.println(in.readLine() + "  in.readLine()");
-        //            //}
-        //        } catch (IOException e) {
-        //            e.printStackTrace();
-        //        }
-        //        //try {
-        //        //    Thread.sleep(10);
-        //        //} catch (InterruptedException e) {
-        //        //    e.printStackTrace();
-        //        //}
-        //
-        //        //break;
-        //    }
-        //});
-        //}
-    }
-
-    void sendSocket(final String str, final Socket socket) {
-        //System.out.println(str);
-        String str1;
-        try (
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
-                //PrintWriter writer = new PrintWriter(socket.getOutputStream())
-                PrintWriter writer = new PrintWriter(new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream()), 1000), true)
-        ) {
-            while (!service.isTerminated()) {
-
-                //str1 = in.readLine();
-                //System.out.println(str1);
-
-                //System.out.println("sssss");
-                //writer.println(str);
-                //String aaa = "aaa";
-                //String aaa = blockingQueue.poll();
-
-                String aaa = blockingQueue.take();
-                //System.out.println(aaa);
-                writer.println(aaa);
-                //writer.flush();
-                while ((str1 = in.readLine()) != null) {
-                    //blockingQueue.put(str1);
-                    result.add(str1);
-                    //System.out.println(str1 + " !!!!!!!!!!!!!!!!!!!!!!!! in.readLine()");
-                }
-                //System.out.println(Thread.currentThread().getName());
-                //System.out.println(
-                //        socket.isConnected() + "  isConnected" + LN
-                //                + socket.isInputShutdown() + "  isInputShutdown()" + LN
-                //                + socket.isClosed() + "  isClosed()" + LN
-                //);
+            while ((str = in.readLine()) != null) {
+                result.push(str);
             }
-        } catch (IOException | InterruptedException e) {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
             LOGGER.error(e.getMessage(), e);
         }
-    }
-}
-
-
-@JsonAutoDetect
-class Cat {
-    private String name;
-    private int age;
-    private int weight;
-
-    Cat(final String name, final int age, final int weight) {
-        this.name = name;
-        this.age = age;
-        this.weight = weight;
-    }
-
-    Cat() {
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-
-    @Override
-    public String toString() {
-        return "Cat{"
-                + "name='" + name + '\''
-                + ", age=" + age
-                + ", weight=" + weight + '}';
     }
 }
