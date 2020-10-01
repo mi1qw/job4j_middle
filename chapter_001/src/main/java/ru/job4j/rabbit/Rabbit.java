@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Rabbit {
     public static final Logger LOGGER = LoggerFactory.getLogger(Rabbit.class);
@@ -74,13 +73,6 @@ public class Rabbit {
         }
     }
 
-    //channel.basicPublish(EXCHANGE_NAME, routingKey, null, message.getBytes("UTF-8"));
-    private AtomicInteger basicPublish = new AtomicInteger(0);
-
-    //public AtomicInteger getBasicPublish() {
-    //    return basicPublish;
-    //}
-
     /**
      * Basic publish.
      *
@@ -88,7 +80,6 @@ public class Rabbit {
      * @param message   the message
      */
     String basicPublish(final String queueName, final String routingKey, final String message) {
-        //basicPublish.getAndIncrement();
         Exchange exchange = QUEUE.get(queueName);
         if (exchange == null) {
             LOGGER.warn("{}{}", wrongNamQue, LN);
@@ -105,7 +96,6 @@ public class Rabbit {
      * @param routingKey the routing key
      * @return the string
      */
-    //channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
     String basicConsume(final String queueName, final String routingKey) {
         Exchange exchange = QUEUE.get(queueName);
         return exchange.get(routingKey);

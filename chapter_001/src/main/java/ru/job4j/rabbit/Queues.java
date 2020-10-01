@@ -13,24 +13,14 @@ class Queues implements Exchangemethods {
     @Override
     public String route(final Map<String, Exchange.InnerQueue> queues,
                         final String routingKey, final String message,
-                        final AddGet function) {
+                        final AddGet function, final boolean isGet) {
         String out = null;
         out = new Route().route(queues, "#",
-                message, function);
+                message, function, isGet);
         if (out == null) {
             out = wasntAded;
             LOGGER.warn("{}{}", wasntAded, LN);
         }
         return out;
-    }
-
-    @Override
-    public String add(final String message) {
-        return null;
-    }
-
-    @Override
-    public String get() {
-        return null;
     }
 }

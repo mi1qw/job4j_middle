@@ -9,7 +9,6 @@ public class CompareMaskTest {
     private CompareMask compare;
 
     @Test
-    //@Ignore
     public void compare0() {
         String pat = "aa.*.bb";
         String str = "aa.11.22.33.bb";
@@ -17,7 +16,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare1() {
         String pat = "aa.#.bb";
         String str = "aa.11.22.33.bb";
@@ -25,7 +23,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare3() {
         String pat = "#.bb1";
         String str = "aa.1.2.3.bb";
@@ -33,7 +30,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare4() {
         String pat = "a.#";
         String str = "a.1.2.3.bb";
@@ -41,7 +37,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare5() {
         String pat = "a.#.b.c";
         String str = "a.1.2.3.b.4";
@@ -49,7 +44,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare6() {
         String pat = "a.#.b.*";
         String str = "a.1.2.3.b.4";
@@ -57,7 +51,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare7() {
         String pat = "*.a.#.b.*";
         String str = "0.a.1.2.3.b.4";
@@ -65,7 +58,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare8() {
         String pat = "*.*.a";
         String str = "0.a.1.2.3.b.4";
@@ -73,7 +65,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare9() {
         String pat = "*.*.a";
         String str = "0.a.a.2.3.b.4";
@@ -81,7 +72,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare10() {
         String pat = "*.*.a";
         String str = "0.a";
@@ -89,7 +79,6 @@ public class CompareMaskTest {
     }
 
     @Test
-    //@Ignore
     public void compare11() {
         String pat = "#.a.a";
         String str = "0";

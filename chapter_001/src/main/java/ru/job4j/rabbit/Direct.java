@@ -13,11 +13,12 @@ class Direct implements Exchangemethods {
 
     @Override
     public String route(final Map<String, Exchange.InnerQueue> queues, final String routingKey,
-                        final String message, final AddGet function) {
+                        final String message, final AddGet function, final boolean isGet) {
         String out = null;
         if (!routingKey.matches(".*[*|#].*")) {
             Route rt = new Route();
-            out = rt.route(queues, routingKey, message, function);
+            out = rt.route(queues, routingKey, message,
+                    function, isGet);
             if (out == null) {
                 out = wasntAded;
                 LOGGER.warn("{}{}", wasntAded, LN);
@@ -27,16 +28,6 @@ class Direct implements Exchangemethods {
             LOGGER.warn("{}{}", wrongRoutKey, LN);
         }
         return out;
-    }
-
-    @Override
-    public String add(final String message) {
-        return null;
-    }
-
-    @Override
-    public String get() {
-        return null;
     }
 }
 

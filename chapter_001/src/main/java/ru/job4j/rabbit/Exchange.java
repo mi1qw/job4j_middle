@@ -83,15 +83,7 @@ class Exchange implements InQueue {
                     } else {
                         return message;
                     }
-                });
-        //return new Direct().route(queues, routingKey, message,
-        //        (n, m) -> {
-        //            if (!n.add(m)) {
-        //                return null;
-        //            } else {
-        //                return message;
-        //            }
-        //        });
+                }, false);
     }
 
     /**
@@ -100,15 +92,7 @@ class Exchange implements InQueue {
     @Override
     public String get(final String routingKey) {
         return type.route(queues, routingKey, null,
-                (n, m) -> n.poll());
-    }
-
-    void topic() {
-
-    }
-
-    void queue() {
-
+                (n, m) -> n.poll(), true);
     }
 
     protected final class InnerQueue {

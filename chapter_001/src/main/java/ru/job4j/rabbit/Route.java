@@ -14,20 +14,17 @@ public class Route {
      */
     public String route(final Map<String, Exchange.InnerQueue> queues,
                         final String routingKey, final String message,
-                        final AddGet function) {
+                        final AddGet function, final boolean isGet) {
         String out = null;
         for (Map.Entry<String, Exchange.InnerQueue> innerQueue : queues.entrySet()) {
-            //System.out.println(innerQueue.getValue().getBindingKey());
             String keyThis = innerQueue.getValue().getBindingKey();
             String[] keys = keyThis.split(",\\s*");
             for (String key : keys) {
-                //System.out.println(key);
                 boolean bo = new CompareMask(routingKey, key).compare();
                 if (bo) {
-                    //System.out.println(keyThis);
                     Exchange.InnerQueue innerQueue1 = queues.get(keyThis);
                     out = function.addGet(innerQueue1, message);
-                    if (out != null) {
+                    if (out != null && isGet) {
                         return out;
                     }
                 }

@@ -13,27 +13,15 @@ class Topic implements Exchangemethods {
     @Override
     public String route(final Map<String, Exchange.InnerQueue> queues,
                         final String routingKey, final String message,
-                        final AddGet function) {
+                        final AddGet function, final boolean isGet) {
         String out = null;
         Route rt = new Route();
-        out = rt.route(queues, routingKey, message, function);
+        out = rt.route(queues, routingKey, message,
+                function, isGet);
         if (out == null) {
             out = wasntAded;
             LOGGER.warn("{}{}", wasntAded, LN);
         }
         return out;
-    }
-
-    @Override
-    public String add(final String message) {
-        //Exchange.InnerQueue
-        System.out.println(message);
-        return null;
-    }
-
-    @Override
-    public String get() {
-        System.out.println("message");
-        return null;
     }
 }
