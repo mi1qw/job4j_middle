@@ -8,12 +8,30 @@ import java.util.stream.Stream;
 
 public class Videocameradata {
     public static final Logger LOGGER = LoggerFactory.getLogger(Videocameradata.class);
-    private static ConcurrentMap<Integer, Camera> cameraList = new ConcurrentHashMap<>();
+    private ConcurrentMap<Integer, Camera> cameraList;
     private static String urlCameras = "http://www.mocky.io/v2/5c51b9dd3400003252129fb5";
+    private ScheduledExecutorService exec;
+    private ExecutorService execST;
 
-    public static void main(final String[] args) throws InterruptedException {
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
-        ExecutorService execST = Executors.newCachedThreadPool();
+    public Videocameradata() {
+        cameraList = new ConcurrentHashMap<>();
+        exec = Executors.newScheduledThreadPool(1);
+        execST = Executors.newCachedThreadPool();
+    }
+
+    /**
+     * Gets all cameras list.
+     *
+     * @return the camera list
+     */
+    public ConcurrentMap<Integer, Camera> getCameraList() {
+        return cameraList;
+    }
+
+    /**
+     * Start.
+     */
+    public void start() {
         Runnable task = () -> {
             DataAndURL dau = new DataAndURL();
             DataURLCameras[] list = dau.getlist(dau.strToURL(urlCameras));
@@ -48,12 +66,21 @@ public class Videocameradata {
                 2700,
                 TimeUnit.MILLISECONDS
         );
-        Thread.sleep(20000);
+    }
+
+    /**
+     * Stop.
+     */
+    public void stop() {
         exec.shutdown();
         execST.shutdown();
         while (!execST.isTerminated()) {
-            Thread.sleep(10);
+            try {
+                TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOGGER.error(e.getMessage(), e);
+            }
         }
-        cameraList.forEach((id, cam) -> System.out.println(cam));
     }
 }
