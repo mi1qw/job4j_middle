@@ -1,6 +1,6 @@
 package ru.job4j.threadpool;
 
-import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,19 +20,22 @@ public class ThreadPoolTest {
         AtomicInteger task = new AtomicInteger();
         ThreadPool pool = new ThreadPool();
         new Thread(() -> {
-            Awaitility.await().pollDelay(250, MILLISECONDS).until(() -> true);
+            await().pollDelay(250, MILLISECONDS).until(() -> true);
             pool.shutdown();
             LOGGER.warn("pool.shutdown{}", System.lineSeparator());
         }, "shutdown").start();
-        Awaitility.await().pollDelay(30, MILLISECONDS).until(() -> true);
+        await().pollDelay(30, MILLISECONDS).until(() -> true);
         while (!pool.isTerminated()) {
             pool.work(() -> {
                 System.out.println("task-" + task.incrementAndGet()
                         + " " + Thread.currentThread().getName());
-                await().atMost(Duration.ofMillis(110)).until(() -> true);
+                try {
+                    await().atMost(Duration.ofMillis(110)).until(() -> true);
+                } catch (ConditionTimeoutException e) {
+                    LOGGER.info(e.getMessage(), e);
+                }
             });
         }
         assertTrue(pool.isTerminated());
-        await().atMost(Duration.ofMillis(110)).until(() -> true);
     }
 }
