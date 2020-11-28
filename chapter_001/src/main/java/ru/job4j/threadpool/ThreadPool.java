@@ -29,6 +29,7 @@ public class ThreadPool {
                     }
                 } finally {
                     LOGGER.info("stop Thread{}", LN);
+                    threads.remove(Thread.currentThread());
                 }
             });
             threads.add(thred);
@@ -70,6 +71,6 @@ public class ThreadPool {
      * Instantiates a new Is terminated.
      */
     public boolean isTerminated() {
-        return stop.get();
+        return threads.isEmpty();
     }
 }
