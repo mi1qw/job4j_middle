@@ -4,12 +4,19 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -20,7 +27,8 @@ import static org.powermock.api.mockito.PowerMockito.*;
         "org.apache.http.conn.ssl.*", "com.amazonaws.*", "javax.net.ssl.*", "com.sun.*",
         "org.w3c.*"})
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Videocameradata.class})
+@PrepareForTest({Videocameradata.class, URL.class})
+//@PrepareForTest({Videocameradata.class})
 public class VideocameradataTest {
     private static String urlCameras = "http://www.mocky.io/v2/5c51b9dd3400003252129fb5";
     public static final String LIST = "[\n"
@@ -84,6 +92,24 @@ public class VideocameradataTest {
         assertTrue(cam.equals(cam));
         assertFalse(cam.equals(null));
         assertFalse(cam.equals("null"));
+    }
+
+    @Test
+    public void jsonFromURL() throws IOException {
+        InputStream testInStrm = new ByteArrayInputStream("test data".getBytes());
+        URLConnection urlConnection = Mockito.mock(URLConnection.class);
+        when(urlConnection.getInputStream()).thenReturn(testInStrm);
+
+        URLStreamHandler handler = new URLStreamHandler() {
+            @Override
+            protected URLConnection openConnection(final URL arg0) {
+                return urlConnection;
+            }
+        };
+
+        URL url = new URL("http://", "host", 80, "", handler);
+        DataAndURL dRL = new DataAndURL();
+        assertEquals("test data", dRL.jsonFromURL(url));
     }
 }
 
