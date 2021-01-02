@@ -5,9 +5,88 @@
     <title>Bootstrap Example</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        p {
+            margin: 0 0 0;
+            font-style: italic;
+            padding-left: 20px;
+        }
+    </style>
+    <script>
+        function upToDiv(nod) {
+            do {
+                if (nod[0]) {
+                    nod = nod[0];
+                }
+                nod = nod.parentNode;
+            } while (nod.nodeName != "DIV");
+            return nod;
+        }
+
+        function delTeg(tag, div) {
+            var t = div.querySelector(tag);
+            if (t) {
+                div.removeChild(t);
+            }
+        }
+
+        function addTag(tag, div) {
+            if (div.childNodes.length > 0) {
+                div.insertBefore(tag, div.childNodes[1]);
+            } else {
+                div.appendChild(tag);
+            }
+        }
+
+        window.onload = function () {
+            // var ids = ["name", "surname", "comment", "email", "pwd"];
+            var ids = [
+                ["name", "введите имя"],
+                ["surname", "введите фамилию"],
+                ["sex", "укажите пол"],
+                ["comment", "добавьте комментарий"],
+                ["email", "укажите email"],
+                ["pwd", "необходим пароль"]
+            ];
+
+            var c = document.getElementById('submit').onclick = function () {
+                // document.getElementById('submit').onsubmit = function () {
+                var form = this.form;
+                var val;
+                for (let i = 0; i < ids.length; i++) {
+                    val = form[ids[i][0]];
+                    var div;
+                    if (val.value.length != 0) {
+                        var sp = document.createElement("span");
+                        sp.className = "glyphicon glyphicon-ok form-control-feedback";
+                        div = upToDiv(val);
+                        div.className = "col-sm-10 has-success has-feedback";
+                        div.style
+                        delTeg('span', div);
+                        delTeg('p', div);
+                        addTag(sp, div);
+                    } else {
+                        var p = document.createElement("p");
+                        p.className = "text-danger";
+                        p.innerHTML = '<small><el>' + ids[i][1] + '</el></small>';
+                        var sp = document.createElement("span");
+                        sp.className = "glyphicon glyphicon-remove form-control-feedback";
+                        div = upToDiv(val);
+                        div.className = "col-sm-10 has-error has-feedback";
+                        delTeg('span', div);
+                        delTeg('p', div);
+                        div.append(p);
+                        addTag(sp, div);
+                    }
+                }
+                return false;
+            }
+        }
+
+    </script>
 </head>
 <body>
 <div class="container">
@@ -17,7 +96,7 @@
         <div class="form-group">
             <label class="control-label col-sm-2" for="name">Имя</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="name">
+                <input type="text" class="form-control" id="name" name="name">
             </div>
         </div>
         <div class="form-group">
@@ -30,10 +109,10 @@
             <label class="control-label col-sm-2">пол</label>
             <div class="col-sm-10">
                 <label class="radio-inline ">
-                    <input type="radio" name="sex">муж
+                    <input type="radio" name="sex">мужчина
                 </label>
                 <label class="radio-inline ">
-                    <input type="radio" name="sex">жен
+                    <input type="radio" name="sex">женщина
                 </label>
             </div>
         </div>
@@ -65,7 +144,9 @@
         </div>
         <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
-                <button type="submit" class="btn btn-default">Submit</button>
+                <button type="submit" class="btn btn-default" id="submit">
+                    Submit
+                </button>
             </div>
         </div>
     </form>
