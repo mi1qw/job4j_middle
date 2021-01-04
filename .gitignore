@@ -42,6 +42,7 @@ project/plugins/target
 project/plugins/src_managed
 project/plugins/project
 lib/*
+out/*
 
 core/lib_managed
 core/target
