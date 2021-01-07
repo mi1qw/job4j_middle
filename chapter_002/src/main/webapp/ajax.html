@@ -15,10 +15,11 @@
 <script>
     function sendGreeting() {
         $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: 'http://localhost:8080/items/greet',
-            data: 'name=' + $('#exampleInputEmail1').val(),
-            dataType: 'text'
+            contentType: "application/json",
+            data: JSON.stringify(na),
+            dataType: 'json'
         }).done(function (data) {
             $('#sp').html(" - " + data);
         }).fail(function (err) {
