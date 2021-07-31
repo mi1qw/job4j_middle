@@ -8,7 +8,7 @@ import java.util.Iterator;
 @ThreadSafe
 public class SingleLockList<T> implements Iterable<T> {
     @GuardedBy("this")
-    private SimpleArrayList<T> list = new SimpleArrayList<>();
+    private final SimpleArrayList<T> list = new SimpleArrayList<>();
 
     /**
      * Add.
