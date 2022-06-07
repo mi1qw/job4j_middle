@@ -12,4 +12,36 @@
     <artifactId>chapter_003</artifactId>
 
 
+    <properties>
+        <db.urlSqltracker>jdbc:postgresql://127.0.0.1:5432/sqltracker</db.urlSqltracker>
+        <db.username>postgres</db.username>
+        <db.password>Password12!</db.password>
+        <db.driver>org.postgresql.Driver</db.driver>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>3.10.3</version>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <changeLogFile>${basedir}/master-sqltracker.xml</changeLogFile>
+                            <url>${db.urlSqltracker}</url>
+                            <driver>${db.driver}</driver>
+                            <username>${db.username}</username>
+                            <password>${db.password}</password>
+                        </configuration>
+                        <phase>process-resources</phase>
+                        <id>one</id>
+                        <goals>
+                            <goal>update</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

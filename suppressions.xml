@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+
+<suppressions>
+    <!--исключить все файлы-->
+    <!--    <suppress files="[a-zA-Z0-9]*" checks="[a-zA-Z0-9]*"/>-->
+
+    <suppress checks="DesignForExtension" files="\.(java|xml)$"/>
+    <suppress checks="ConstantName" files="\.(java|xml)$"/>
+
+    <suppress checks="MethodLength" files="\.*Test.(java|xml)$"/>
+
+    <!--    ';' is followed by whitespace. [EmptyForIteratorPad]-->
+    <suppress checks="EmptyForIteratorPad" files="\.(java|xml)$"/>
+
+    <!--    &lt;!&ndash;            Must have at least one statement. (8:61) [EmptyBlock]  &ndash;&gt;-->
+    <suppress checks="EmptyBlock" files="src[\\/].*"/>
+
+    <!--    ';' is followed by whitespace. [EmptyForIteratorPad]-->
+    <suppress checks="EmptyForIteratorPad" files="src[\\/].*[\\/]DeqList.java"/>
+
+    <!--    Each variable declaration must be in its own statement. [MultipleVariableDeclarations]-->
+    <suppress checks="MultipleVariableDeclarations" files="\.(java|xml)$"/>
+
+
+</suppressions>

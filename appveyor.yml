@@ -40,6 +40,7 @@ install:
 build_script:
   #  - chcp 65001 && mvn clean package --batch-mode -DskipTest
   #  - createdb product
+  - createdb sqltracker
 
   - mvn clean package --batch-mode -DskipTest
 test_script:
