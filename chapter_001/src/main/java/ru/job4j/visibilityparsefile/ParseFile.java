@@ -21,6 +21,9 @@ public class ParseFile {
 
     /**
      * Gets content.
+     * getContentWithoutUnicode by default
+     * <p>
+     * getContent(true) - With Unicode
      *
      * @return the content
      */
