@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bootstrap Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        p {
+            margin: 0 0 0;
+            font-style: italic;
+            padding-left: 20px;
+        }
+    </style>
+    <script>
+        function upToDiv(nod) {
+            do {
+                if (nod[0]) {
+                    nod = nod[0];
+                }
+                nod = nod.parentNode;
+            } while (nod.nodeName != "DIV");
+            return nod;
+        }
+
+        function delTeg(tag, div) {
+            var t = div.querySelector(tag);
+            if (t) {
+                div.removeChild(t);
+            }
+        }
+
+        function addTag(tag, div) {
+            if (div.childNodes.length > 0) {
+                div.insertBefore(tag, div.childNodes[1]);
+            } else {
+                div.appendChild(tag);
+            }
+        }
+
+        window.onload = function () {
+            var ids = [
+                ["name", "введите имя"],
+                ["surname", "введите фамилию"],
+                ["sex", "укажите пол"],
+                ["comment", "добавьте комментарий"],
+                ["email", "укажите email"],
+                ["pwd", "необходим пароль"]
+            ];
+
+            document.getElementById('submit').onclick = function () {
+                // document.getElementById('submit').onsubmit = function () {
+                let form = this.form;
+                let val;
+                let valid = true;
+                for (let i = 0; i < ids.length; i++) {
+                    val = form[ids[i][0]];
+                    let div;
+                    if (val.value.length != 0) {
+                        let sp = document.createElement("span");
+                        sp.className = "glyphicon glyphicon-ok form-control-feedback";
+                        div = upToDiv(val);
+                        div.className = "col-sm-10 has-success has-feedback";
+                        div.style
+                        delTeg('span', div);
+                        delTeg('p', div);
+                        addTag(sp, div);
+                    } else {
+                        valid = false;
+                        var p = document.createElement("p");
+                        p.className = "text-danger";
+                        p.innerHTML = '<small><el>' + ids[i][1] + '</el></small>';
+                        var sp = document.createElement("span");
+                        sp.className = "glyphicon glyphicon-remove form-control-feedback";
+                        div = upToDiv(val);
+                        div.className = "col-sm-10 has-error has-feedback";
+                        delTeg('span', div);
+                        delTeg('p', div);
+                        div.append(p);
+                        addTag(sp, div);
+                    }
+                }
+                if (valid) {
+                    let man = form.sex[0].checked;
+                    let user = new User(
+                        $('#name').val(),
+                        $('#surname').val(),
+                        man === true ? 'man' : 'female',
+                        $('#comment').val(),
+                        $('#email').val(),
+                        $('#pwd').val()
+                    );
+                    ajax(user);
+                }
+                return false;
+            }
+            $('#addRow').click(function () {
+                let name = $('#name').val();
+                let surname = $('#surname').val();
+                let email = $('#email').val();
+                $('table tr:last').after('<tr>\n' +
+                    '                    <td>' + name + '</td>\n' +
+                    '                    <td>' + surname + '</td>\n' +
+                    '                    <td>' + email + '</td>\n' +
+                    '                </tr>'
+                );
+            });
+            function ajax(send) {
+                $.ajax({
+                    type: 'POST',
+                    url: 'http://localhost:8080/items/greet',
+                    contentType: "application/json",
+                    data: JSON.stringify(send),
+                    dataType: 'json'
+                }).done(function (data) {
+                    // let user = jQuery.parseJSON(data);
+                    $('table tr:last').after('<tr>\n' +
+                        '                    <td>' + data.name + '</td>\n' +
+                        '                    <td>' + data.surname + '</td>\n' +
+                        '                    <td>' + data.email + '</td>\n' +
+                        '                </tr>'
+                    );
+                }).fail(function (err) {
+                    alert(err);
+                });
+            }
+        }
+        function User(name, surname, sex, comment, email, pwd) {
+            this.name = name;
+            this.surname = surname;
+            this.sex = sex;
+            this.comment = comment;
+            this.email = email;
+            this.pwd = pwd;
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1>My First Bootstrap Page</h1>
+    <p>This is some text.</p>
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="name">Имя</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="name" name="name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="surname">фамилия</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="surname">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2">пол</label>
+            <div class="col-sm-10">
+                <label class="radio-inline ">
+                    <input type="radio" name="sex">мужчина
+                </label>
+                <label class="radio-inline ">
+                    <input type="radio" name="sex">женщина
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="comment">Описание:</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" rows="5" id="comment"></textarea>
+            </div>
+        </div>
+        <br>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="email">Email address:</label>
+            <div class="col-sm-10">
+                <input type="email" class="form-control" id="email">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="pwd">Password:</label>
+            <div class="col-sm-10">
+                <input type="password" class="form-control" id="pwd">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                    <label><input type="checkbox" name="remember"> Remember me</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-default" id="submit">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </form>
+    <br>
+    <div class="row" style="padding-top: 20px; margin-bottom: 10px">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+            <button type="button" class="btn btn-primary ol" id="addRow">addRow
+                <span class="badge">7</span></button>
+            <p style="padding-top: 20px">Список кого-то:</p>
+            <table class="table table-striped" aria-describedby="mydesc" style="width: 70%">
+                <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Email</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>John</td>
+                    <td>Doe</td>
+                    <td>john@example.com</td>
+                </tr>
+                <tr>
+                    <td>Mary</td>
+                    <td>Moe</td>
+                    <td>mary@example.com</td>
+                </tr>
+                <tr>
+                    <td>July</td>
+                    <td>Dooley</td>
+                    <td>july@example.com</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+</div>
+</body>
+</html>

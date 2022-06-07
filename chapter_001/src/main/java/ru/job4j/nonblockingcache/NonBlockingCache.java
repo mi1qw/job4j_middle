@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NonBlockingCache implements NonBlockingCacheInt {
     public static final Logger LOGGER = LoggerFactory.getLogger(NonBlockingCache.class);
-    private Map<Integer, Base> cache = new ConcurrentHashMap<>();
+    private final Map<Integer, Base> cache = new ConcurrentHashMap<>();
 
     /**
      * Add.
