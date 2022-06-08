@@ -41,19 +41,6 @@ public class StartUI {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-//        Input input = new ConsoleInput();
-//        Input validate = new ValidateInput(input);
-//        MemTracker tracker = new MemTracker();
-//        List<UserAction> actions = new ArrayList<>();
-//        actions.add(new CreateAction());
-//        actions.add(new ShowAllAction());
-//        actions.add(new ReplaceItemAction());
-//        actions.add(new DeleteItemAction());
-//        actions.add(new FindItemByIdAction());
-//        actions.add(new FindItemByNameAction());
-//        actions.add(new ExitAction());
-//        new StartUI().init(validate, tracker, actions);
     }
 }
 

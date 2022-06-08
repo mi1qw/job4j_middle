@@ -11,13 +11,21 @@
 
     <artifactId>chapter_003</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.6.8.Final</version>
+        </dependency>
+    </dependencies>
 
     <properties>
-        <db.urlSqltracker>jdbc:postgresql://127.0.0.1:5432/sqltracker</db.urlSqltracker>
+        <db.tracker>jdbc:postgresql://127.0.0.1:5432/tracker</db.tracker>
         <db.username>postgres</db.username>
         <db.password>Password12!</db.password>
         <db.driver>org.postgresql.Driver</db.driver>
     </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -27,8 +35,8 @@
                 <executions>
                     <execution>
                         <configuration>
-                            <changeLogFile>${basedir}/master-sqltracker.xml</changeLogFile>
-                            <url>${db.urlSqltracker}</url>
+                            <changeLogFile>${basedir}/master-tracker.xml</changeLogFile>
+                            <url>${db.tracker}</url>
                             <driver>${db.driver}</driver>
                             <username>${db.username}</username>
                             <password>${db.password}</password>

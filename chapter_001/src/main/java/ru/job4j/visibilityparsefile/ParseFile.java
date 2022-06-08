@@ -25,6 +25,7 @@ public class ParseFile {
      * <p>
      * getContent(true) - With Unicode
      *
+     * @param unicod unicod
      * @return the content
      */
     public synchronized String getContent(final boolean... unicod) {

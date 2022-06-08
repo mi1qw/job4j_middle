@@ -9,6 +9,7 @@ public interface NonBlockingCacheInt {
      * Add.
      *
      * @param model the model
+     * @return Base
      */
     Base add(Base model);
 
@@ -27,13 +28,6 @@ public interface NonBlockingCacheInt {
      */
     Base delete(Base model);
 
-    ///**
-    // * Find by model int.
-    // *
-    // * @param model the model
-    // * @return the int
-    // */
-    //int findByModel(Base model);
 
     /**
      * Gets all.

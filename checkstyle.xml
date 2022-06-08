@@ -100,11 +100,26 @@
         <!-- Checks for Javadoc comments.                     -->
         <!-- See https://checkstyle.org/config_javadoc.html -->
         <!-- <module name="InvalidJavadocPosition"/> -->
-        <!-- <module name="JavadocMethod"/> -->
-        <!-- <module name="JavadocType"/> -->
-        <!-- <module name="JavadocVariable"/> -->
-        <!-- <module name="JavadocStyle"/> -->
+        <module name="JavadocMethod"/>
+        <module name="JavadocType"/>
+        <!--         <module name="JavadocVariable"/>-->
+        <module name="JavadocStyle"/>
         <!-- <module name="MissingJavadocMethod"/> -->
+        <module name="SingleLineJavadoc"/>
+
+
+        <!--        не так!-->
+        <!--        <module name="Regexp">-->
+        <!--            <property name="format" value=".*[{]{0,}.*[\r\n]+.*[^:]\/\/"/>-->
+        <!--            <property name="illegalPattern" value="true"/>-->
+        <!--        </module>-->
+
+        <module name="RegexpSinglelineJava">
+            <!---->
+            <property name="format" value="([^:]+|^)[/]{2}.*$"/>
+            <property name="message" value="Комментарии-в-коде"/>
+        </module>
+
 
         <!-- Checks for Naming Conventions.                  -->
         <!-- See https://checkstyle.org/config_naming.html -->
@@ -120,7 +135,7 @@
 
         <!-- Checks for imports                              -->
         <!-- See https://checkstyle.org/config_imports.html -->
-<!--        <module name="AvoidStarImport"/>-->
+        <!--        <module name="AvoidStarImport"/>-->
         <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
         <module name="RedundantImport"/>
         <module name="UnusedImports">
@@ -162,10 +177,10 @@
         <!-- See https://checkstyle.org/config_coding.html -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
-<!--        <module name="HiddenField"/>-->
+        <!--        <module name="HiddenField"/>-->
         <module name="IllegalInstantiation"/>
-<!--        <module name="InnerAssignment"/>-->
-<!--        <module name="MagicNumber"/>-->
+        <!--        <module name="InnerAssignment"/>-->
+        <!--        <module name="MagicNumber"/>-->
         <module name="MissingSwitchDefault"/>
         <module name="MultipleVariableDeclarations"/>
         <module name="SimplifyBooleanExpression"/>
@@ -175,7 +190,7 @@
         <!-- See https://checkstyle.org/config_design.html -->
         <module name="DesignForExtension"/>
         <module name="FinalClass"/>
-<!--        <module name="HideUtilityClassConstructor"/>-->
+        <!--        <module name="HideUtilityClassConstructor"/>-->
         <module name="InterfaceIsType"/>
         <module name="VisibilityModifier"/>
 

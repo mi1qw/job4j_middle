@@ -13,9 +13,9 @@ import static org.junit.Assert.assertThat;
 public class MemTrackerTest {
 
     /**
-     * тест проверяет добавление в массив tracker, использует поиск по Id
+     * тест проверяет добавление в массив tracker, использует поиск по Id.
      */
-    @Test //метод add
+    @Test
     public void whenAddNewItemThenTrackerHasSameItem() {
         MemTracker memTracker = new MemTracker();
         Item item = new Item("test1");
@@ -23,7 +23,11 @@ public class MemTrackerTest {
         Item result = memTracker.findById(item.getId());
         assertThat(result.getName(), is(item.getName()));
     }
-    @Test // проверяем метод поиска findAll
+
+    /**
+     * проверяем метод поиска findAll.
+     */
+    @Test
     public void whenAdd5ItemsAndUniqueIDForEachThenTrue() {
         MemTracker memTracker = new MemTracker();
         Item item1 = new Item("test1");
@@ -47,7 +51,11 @@ public class MemTrackerTest {
         List<Item> result = memTracker.findAll();
         assertThat(expected, is(result));
     }
-    @Test // проверяем метод поиска по имени
+
+    /**
+     * проверяем метод поиска по имени.
+     */
+    @Test
     public void whenAdd5ItemsAnd3SameNamesThenTrackerHas3ItemBySameName() {
         MemTracker memTracker = new MemTracker();
         Item item1 = new Item("test1");
@@ -69,7 +77,10 @@ public class MemTrackerTest {
         assertThat(expected, is(result));
     }
 
-    @Test // проверяем метод findById
+    /**
+     * проверяем метод findById.
+     */
+    @Test
     public void whenAdd5ItemsAddThenTheyAllInTracker() {
         MemTracker memTracker = new MemTracker();
         Item item1 = new Item("test1");
@@ -87,23 +98,29 @@ public class MemTrackerTest {
         assertThat(item5, is(result));
     }
 
-    @Test // метод replace
+    /**
+     * метод replace.
+     */
+    @Test
     public void whenReplace() {
         MemTracker memTracker = new MemTracker();
         Item bug = new Item("Bug");
         memTracker.add(bug);
-        String id = bug.getId();
+        int id = bug.getId();
         Item bugWithDesc = new Item("Bug with description");
         memTracker.replace(id, bugWithDesc);
         assertThat(memTracker.findById(id).getName(), is("Bug with description"));
     }
 
-    @Test // тест delete
+    /**
+     * тест delete.
+     */
+    @Test
     public void whenDelete() {
         MemTracker memTracker = new MemTracker();
         Item bug = new Item("Bug");
         memTracker.add(bug);
-        String id = bug.getId();
+        int id = bug.getId();
         memTracker.delete(id);
         assertThat(memTracker.findById(id), is(nullValue()));
     }

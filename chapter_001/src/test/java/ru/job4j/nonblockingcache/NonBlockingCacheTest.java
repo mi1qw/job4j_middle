@@ -1,6 +1,5 @@
 package ru.job4j.nonblockingcache;
 
-//import org.junit.FixMethodOrder;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -13,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-//@FixMethodOrder
+
 public class NonBlockingCacheTest {
     private NonBlockingCache cache = new NonBlockingCache();
     public static final Logger LOGGER = LoggerFactory.getLogger(NonBlockingCacheTest.class);

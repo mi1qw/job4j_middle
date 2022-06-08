@@ -11,7 +11,7 @@ services:
   - postgresql
 before_install:
 #  - psql -c 'create database product;' -U postgres
-  - psql -c 'create database sqltracker;' -U postgres
+  - psql -c 'create database tracker;' -U postgres
 
 addons:
   sonarcloud:

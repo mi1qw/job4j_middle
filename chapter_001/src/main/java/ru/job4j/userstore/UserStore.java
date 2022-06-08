@@ -102,6 +102,7 @@ public class UserStore implements Store {
          * Change amount.
          *
          * @param sum the sum
+         * @return boolean
          */
         public boolean changeAmount(final int sum) {
             int balance = amount + sum;

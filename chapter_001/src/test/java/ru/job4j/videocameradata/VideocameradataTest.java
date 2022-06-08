@@ -17,8 +17,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.*;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -28,28 +28,30 @@ import static org.powermock.api.mockito.PowerMockito.*;
         "org.w3c.*"})
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Videocameradata.class, URL.class})
-//@PrepareForTest({Videocameradata.class})
 public class VideocameradataTest {
     private static String urlCameras = "http://www.mocky.io/v2/5c51b9dd3400003252129fb5";
     public static final String LIST = "[\n"
-            + "    {\n"
-            + "        \"id\": 1999,\n"
-            + "        \"sourceDataUrl\": \"http://www.mocky.io/v2/5c51b230340000094f129f5d\",\n"
-            + "        \"tokenDataUrl\": \"http://www.mocky.io/v2/5c51b5b6340000554e129f7b?mocky-"
-            + "delay=1s\"\n"
-            + "    }\n"
-            + "]";
+                                      + "    {\n"
+                                      + "        \"id\": 1999,\n"
+                                      + "        \"sourceDataUrl\": \"http://www.mocky.io/v2/"
+                                      + "5c51b230340000094f129f5d\",\n"
+                                      + "        \"tokenDataUrl\": \"http://www.mocky.io/v2/"
+                                      + "5c51b5b6340000554e129f7b?mocky-"
+                                      + "delay=1s\"\n"
+                                      + "    }\n"
+                                      + "]";
     public static final String SOURCE_DATA_URL = "http://www.mocky.io/v2/5c51b230340000094f129f5d";
     public static final String SOURCEURL = "{\n"
-            + "    \"urlType\": \"LIVE\",\n"
-            + "    \"videoUrl\": \"rtsp://127.0.0.1/19\"\n"
-            + "}";
+                                           + "    \"urlType\": \"LIVE\",\n"
+                                           + "    \"videoUrl\": \"rtsp://127.0.0.1/19\"\n"
+                                           + "}";
     public static final String TOKEN_DATA_URL = "http://www.mocky.io/v2/5c51b5b6340000554e129f7b"
-            + "?mocky-delay=1s";
+                                                + "?mocky-delay=1s";
     public static final String TOKEN_URL = "{\n"
-            + "    \"value\": \"fa4b588e-249b-11e9-ab14-d663bd873d93\",\n"
-            + "    \"ttl\": 1209\n"
-            + "}";
+                                           + "    \"value\": \"fa4b588e-249b-11e9-ab14-d663bd8"
+                                           + "73d93\",\n"
+                                           + "    \"ttl\": 1209\n"
+                                           + "}";
     public static final Logger LOGGER = LoggerFactory.getLogger(VideocameradataTest.class);
     public static final String LN = System.lineSeparator();
     private static Camera cam;
@@ -75,14 +77,12 @@ public class VideocameradataTest {
         doReturn(TOKEN_URL).when(spydataAndURL).jsonFromURL(dat.strToURL(TOKEN_DATA_URL));
 
         vid.start();
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException ignored) {
-        }
+        await().until(() -> vid.getCameraList().get(1999) != null);
         vid.stop();
-        LOGGER.info(String.valueOf(vid.getCameraList().get(1999)));
 
         Camera camera = vid.getCameraList().get(1999);
+        LOGGER.info(String.valueOf(camera));
+
         camera.hashCode();
         assertEquals(cam, camera);
     }

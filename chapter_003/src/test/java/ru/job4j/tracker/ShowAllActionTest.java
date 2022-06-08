@@ -4,10 +4,10 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.StringJoiner;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ShowAllActionTest {
     @Test
@@ -24,7 +24,8 @@ public class ShowAllActionTest {
                 .add("==== Показать все заявки ====")
                 .add(item.getId() + " " + item.getName())
                 .toString();
-        assertThat(new String(out.toByteArray()), is(expect));
+        assertEquals(Arrays.toString(expect.getBytes()),
+                Arrays.toString(out.toString().getBytes()));
         System.setOut(def);
     }
 }

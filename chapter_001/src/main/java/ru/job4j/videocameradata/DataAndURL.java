@@ -64,7 +64,7 @@ class DataAndURL {
 
     /**
      * Get list of Cameras.
-     *
+     *@param urlCameras urlCameras
      * @return arrayCameras
      */
     DataURLCameras[] getlist(final URL urlCameras) {

@@ -1,6 +1,5 @@
 package ru.job4j.tracker;
 
-//import java.util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +16,10 @@ public class MemTracker implements Store {
     }
 
     /**
-     * Метод добавления заявки в хранилище
+     * Метод добавления заявки в хранилище.
      *
-     * @param item новая заявка
+     * @param item новая заявка.
+     * @return boolean
      */
     public Item add(final Item item) {
         item.setId(this.generateId());
@@ -33,13 +33,13 @@ public class MemTracker implements Store {
      *
      * @return Уникальный ключ.
      */
-    private String generateId() {
+    private Integer generateId() {
         Random rm = new Random();
-        return String.valueOf(rm.nextLong() + System.currentTimeMillis());
+        return rm.nextInt() + (int) System.currentTimeMillis();
     }
 
     /**
-     * Метод возвращает все элементы массива items урезая его длину (без null элементов items)
+     * Метод возвращает все элементы массива items урезая его длину (без null элементов items).
      *
      * @return все элементы массива items без null элементов items
      */
@@ -52,7 +52,6 @@ public class MemTracker implements Store {
 
     /**
      * @param key - имя элемента массива Items
-     *
      * @return - Items[] contains all elements with name match key
      */
     public List<Item> findByName(final String key) {
@@ -67,10 +66,9 @@ public class MemTracker implements Store {
 
     /**
      * @param id id
-     *
      * @return element of Item[] with search id
      */
-    public Item findById(final String id) {
+    public Item findById(final Integer id) {
         for (Item item : items) {
             if (item.getId().equals(id)) {
                 return item;
@@ -79,7 +77,7 @@ public class MemTracker implements Store {
         return null;
     }
 
-    private int findIndexByID(final String id) {
+    private int findIndexByID(final Integer id) {
         int index = 0;
         for (Item item : items) {
             if (item.getId().equals(id)) {
@@ -93,8 +91,9 @@ public class MemTracker implements Store {
     /**
      * @param id   id
      * @param item item
+     * @return boolean
      */
-    public boolean replace(final String id, final Item item) {
+    public boolean replace(final Integer id, final Item item) {
         int index = findIndexByID(id);
         if (index != -1) {
             items.set(index, item);
@@ -104,11 +103,12 @@ public class MemTracker implements Store {
     }
 
     /**
-     * Метод удаления элемента из массива
+     * Метод удаления элемента из массива.
      *
      * @param id id
+     * @return boolean
      */
-    public boolean delete(final String id) {
+    public boolean delete(final Integer id) {
         int index = findIndexByID(id);
         if (index != -1) {
             items.remove(index);

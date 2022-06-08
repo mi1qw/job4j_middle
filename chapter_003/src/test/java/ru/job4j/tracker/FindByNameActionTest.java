@@ -4,15 +4,15 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.StringJoiner;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class FindByNameActionTest {
-//    @Ignore
     @Test
-    public void whenFindByName() {
+    public void whenFindByName() throws UnsupportedEncodingException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintStream def = System.out;
         System.setOut(new PrintStream(out));
@@ -20,12 +20,13 @@ public class FindByNameActionTest {
         Item item = new Item("fix bug");
         tracker.add(item);
         FindItemByNameAction act = new FindItemByNameAction();
-        act.execute(new StubInput(new String[] {item.getName()}), tracker);
+        act.execute(new StubInput(new String[]{item.getName()}), tracker);
         String expect = new StringJoiner(System.lineSeparator(), "", System.lineSeparator())
                 .add("==== Начинаем поиск заявки по имени ====")
                 .add("Найдено " + item.getName() + " " + item.getId())
                 .toString();
-        assertThat(new String(out.toByteArray()), is(expect));
+        assertEquals(Arrays.toString(expect.getBytes()),
+                Arrays.toString(out.toString().getBytes()));
         System.setOut(def);
     }
 }

@@ -1,6 +1,6 @@
 CREATE TABLE items
 (
-    id        serial primary key,
+    id   serial primary key,
     name text
 );
 

@@ -1,21 +1,29 @@
 package ru.job4j.tracker;
 
+import javax.persistence.*;
 import java.util.Objects;
 
+@Entity
+@Table(name = "items")
 public class Item {
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private String name;
 
     public Item(final String name) {
         this.name = name;
     }
 
-    public String getId() {
+    public Item() {
+    }
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(final String id) {
-        this.id = id;
+    public void setId(final Integer id) {
+        this.id = Integer.valueOf(id);
     }
 
     public String getName() {
@@ -24,14 +32,6 @@ public class Item {
 
     public void setName(final String name) {
         this.name = name;
-    }
-
-    @Override
-    public String toString() {
-        return "Item{"
-               + "name='" + name + '\''
-               + ", id=" + id
-               + '}';
     }
 
     @Override
@@ -50,5 +50,13 @@ public class Item {
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getName());
+    }
+
+    @Override
+    public String toString() {
+        return "Item{"
+               + "name='" + name + '\''
+               + ", id=" + id
+               + '}';
     }
 }

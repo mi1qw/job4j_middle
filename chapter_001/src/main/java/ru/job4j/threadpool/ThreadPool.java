@@ -39,10 +39,12 @@ public class ThreadPool {
 
     /**
      * Stop pool.
+     * вывести поток из возможной блокировки в
+     * SimpleBlockingQueue
      */
     private void stop() {
         stop.set(true);
-        tasks.poll();       // вывести поток из возможной блокировки в SimpleBlockingQueue
+        tasks.poll();
     }
 
     /**
@@ -69,6 +71,7 @@ public class ThreadPool {
 
     /**
      * Instantiates a new Is terminated.
+     * @return boolean
      */
     public boolean isTerminated() {
         return threads.isEmpty();
