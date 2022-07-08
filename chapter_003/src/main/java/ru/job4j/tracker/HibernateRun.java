@@ -14,18 +14,30 @@ public class HibernateRun {
                 .configure().build();
         try {
             SessionFactory sf = new MetadataSources(registry).buildMetadata().buildSessionFactory();
-            Item item = create(new Item("Learn Hibernate"), sf);
+            Item item = create(
+                    new Item("Learn Hibernate", "description_1"),
+                    sf);
             System.out.println(item);
             item.setName("Learn Hibernate 5.");
             update(item, sf);
             System.out.println(item);
-            Item rsl = findById(item.getId(), sf);
-            System.out.println(rsl);
-            delete(rsl.getId(), sf);
+
+            Item item1 = create(
+                    new Item("Learn Hibernate", "description_2"),
+                    sf);
+            System.out.println(item1);
+            item1.setName("Learn Hibernate 6.");
+            update(item1, sf);
+            System.out.println(item1);
+
             List<Item> list = findAll(sf);
             for (Item it : list) {
                 System.out.println(it);
             }
+            Item rsl = findById(item.getId(), sf);
+            delete(rsl.getId(), sf);
+            rsl = findById(item1.getId(), sf);
+            delete(rsl.getId(), sf);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
